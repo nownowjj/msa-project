@@ -6,12 +6,14 @@ import com.sideproject.auth.jwt.JwtUtil
 import com.sideproject.auth.service.AuthService
 import com.sideproject.common.auth.AuthVerifyResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 @RequestMapping("/auth")
@@ -22,17 +24,23 @@ class AuthController(
 
 
     @PostMapping("/verify")
-    fun verify(@RequestHeader(HttpHeaders.AUTHORIZATION) token: String): ResponseEntity<AuthVerifyResponse> {
-        val cleanToken = token.removePrefix("Bearer ").trim()
-
-        if (!jwtUtil.validateToken(cleanToken)) {
-            return ResponseEntity.status(401).build()
+    fun verify(@RequestHeader(HttpHeaders.AUTHORIZATION , required = false) authHeader:  String?
+    ): ResponseEntity<AuthVerifyResponse> {
+        if (authHeader.isNullOrBlank() || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 
-        val userId = jwtUtil.getUserId(cleanToken)
-        val roles = jwtUtil.getRoles(cleanToken)
+        val token = authHeader.removePrefix("Bearer ").trim()
 
-        val response = AuthVerifyResponse(userId, roles)
+        if (!jwtUtil.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        }
+
+        val response = AuthVerifyResponse(
+            userId = jwtUtil.getUserId(token),
+            roles = jwtUtil.getRoles(token)
+        )
+
         return ResponseEntity.ok(response)
     }
 
@@ -40,7 +48,6 @@ class AuthController(
     fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
         val (userId, roles) =
             authService.authenticate(request.email, request.password)
-
         val token = jwtUtil.generateToken(userId, roles)
         return ResponseEntity.ok(LoginResponse(token))
     }

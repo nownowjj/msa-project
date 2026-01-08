@@ -1,6 +1,8 @@
 package com.sideproject.api.client
 
 import com.sideproject.api.security.UnauthorizedException
+import com.sideproject.auth.dto.LoginRequest
+import com.sideproject.auth.dto.LoginResponse
 import com.sideproject.common.auth.AuthVerifyResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
@@ -11,11 +13,11 @@ import java.time.Duration
 
 @Component
 class AuthServiceClient(
-    private val webClient: WebClient
+    private val authWebClient: WebClient
 ) {
 
     fun verify(token: String): AuthVerifyResponse {
-        return webClient
+        return authWebClient
             .post()
             .uri("/auth/verify")
             .header(HttpHeaders.AUTHORIZATION, token)
@@ -34,4 +36,13 @@ class AuthServiceClient(
             )
             .block()!!
     }
+
+    fun login(request: LoginRequest): LoginResponse =
+        authWebClient.post()
+            .uri("/auth/login")
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(LoginResponse::class.java)
+            .block()
+            ?: throw IllegalStateException("Auth login response is null")
 }

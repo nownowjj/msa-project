@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController
 class UserController {
 
     @GetMapping("/me")
-    @AuthRequired
     fun me(): Long {
         println("controller 접근")
         return AuthContext.get().userId
