@@ -22,14 +22,14 @@ class AuthInterceptor(
         handler: Any
     ): Boolean {
 
+        println("1")
         if (handler !is HandlerMethod) return true
         // PermitAll → 무조건 통과
         if (
             handler.hasMethodAnnotation(PermitAll::class.java) ||
             handler.beanType.isAnnotationPresent(PermitAll::class.java)
         ) return true
-
-        val authHeader = request.getHeader("Authorization")
+        println("2")
         // 2. 기본 정책 = 인증 필요
         val token = request.getHeader("Authorization")
             ?: throw UnauthorizedException("Authorization header missing")

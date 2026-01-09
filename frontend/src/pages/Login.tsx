@@ -14,6 +14,11 @@ export default function Login() {
     alert("로그인 성공");
   };
 
+    const googleLogin = async () => {
+    const res = await api.get("/oauth/google/login");
+    window.location.href = res.data.url;
+  };
+
   return (
     <div>
       <h2>Login</h2>
@@ -24,6 +29,8 @@ export default function Login() {
         placeholder="password"
       />
       <button onClick={login}>Login</button>
+
+      <button onClick={googleLogin}>Google 로그인</button>
     </div>
   );
 }

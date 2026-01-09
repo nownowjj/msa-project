@@ -21,6 +21,15 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    implementation ("org.springframework.boot:spring-boot-starter-oauth2-client")
+
+    implementation("org.postgresql:postgresql:42.7.3")
+
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa") // JPA 쓰면 추가
 }
 
 tasks.withType<KotlinCompile> {
