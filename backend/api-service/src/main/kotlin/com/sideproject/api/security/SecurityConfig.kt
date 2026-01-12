@@ -25,6 +25,7 @@ class SecurityConfig {
                         "/api/permitAll/**",
                         "/api/auth/login",
                         "/api/oauth/**",
+                        "/api/auth/**",
                         "/api/youtube/**"
                     ).permitAll()
                     .anyRequest().authenticated()

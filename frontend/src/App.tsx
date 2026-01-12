@@ -4,7 +4,8 @@ import Login from './pages/Login'
 import MyPage from './pages/MyPage'
 
 function App() {
-  
+  console.log('CLIENT ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
+
 
   return (
     <BrowserRouter>

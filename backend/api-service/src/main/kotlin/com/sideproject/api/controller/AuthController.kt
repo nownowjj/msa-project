@@ -25,19 +25,19 @@ class AuthController (
 ){
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @PermitAll
-    @PostMapping("/api/auth/login")
-    fun login(@RequestBody request: LoginRequest) : ResponseEntity<LoginResponse>{
-        return try {
-            val response = authServiceClient.login(request)
-            log.info("auth-service login response = {}",response)
-            ResponseEntity.ok(response)
-        } catch (e: Exception) {
-            log.error("❌ auth-service login error", e)
-            throw e
-        }
-//        return ResponseEntity.ok(authServiceClient.login(request))
-    }
+//    @PermitAll
+//    @PostMapping("/api/auth/login")
+//    fun login(@RequestBody request: LoginRequest) : ResponseEntity<LoginResponse>{
+//        return try {
+//            val response = authServiceClient.login(request)
+//            log.info("auth-service login response = {}",response)
+//            ResponseEntity.ok(response)
+//        } catch (e: Exception) {
+//            log.error("❌ auth-service login error", e)
+//            throw e
+//        }
+////        return ResponseEntity.ok(authServiceClient.login(request))
+//    }
 
     @PermitAll
     @GetMapping("/api/permitAll/db-test")

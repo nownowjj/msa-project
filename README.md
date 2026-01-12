@@ -9,6 +9,8 @@ msa-project
  └─ frontend               -> Netlify 고려
      └─ web-app
 
+DataBase = supabase postgresql
+
 사이드 프로젝트 특성 상 git 관리는 같은 repo에서 관리
 
 MSA 런타임 분리
