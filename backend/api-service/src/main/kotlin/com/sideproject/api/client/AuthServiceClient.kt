@@ -1,9 +1,10 @@
 package com.sideproject.api.client
 
-import com.sideproject.common.dto.GoogleLoginRequestCode
 import com.sideproject.api.security.UnauthorizedException
 import com.sideproject.common.auth.AuthVerifyResponse
+import com.sideproject.common.dto.GoogleLoginRequestCode
 import com.sideproject.common.dto.LoginResponse
+import com.sideproject.common.dto.TokenInfoResponse
 import feign.FeignException
 import org.springframework.stereotype.Component
 
@@ -19,13 +20,12 @@ class AuthServiceClient(
             throw UnauthorizedException()
         }
 
-//    fun login(request: LoginRequest): LoginResponse =
-//        authClient.login(request)
-
-//    fun googleLogin(idToken: String): LoginResponse =
-//        authClient.googleLogin(GoogleLoginRequest(idToken))
-
-    //
+    // 구글 로그인 처리 및 access, refresh token 발급하여 DB 저장
     fun googleLoginWithCode(code: String): LoginResponse =
         authClient.googleLoginWithCode(GoogleLoginRequestCode(code))
+
+    // 유효한 google access_token 발급
+    fun getToken(email: String): TokenInfoResponse =
+        authClient.getToken(email)
+
 }

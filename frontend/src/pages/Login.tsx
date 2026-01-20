@@ -1,8 +1,7 @@
 // src/pages/Login.tsx
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useState } from "react";
 import { api } from "../api/api";
-import GoogleLoginButton from "../components/GoogleLoginButton";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import YoutubeConnectButton from "../components/YoutubeConnectButton";
 
 export default function Login() {

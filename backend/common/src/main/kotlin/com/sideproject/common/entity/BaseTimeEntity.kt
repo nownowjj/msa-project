@@ -1,4 +1,4 @@
-package com.sideproject.auth.entity
+package com.sideproject.common.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.EntityListeners

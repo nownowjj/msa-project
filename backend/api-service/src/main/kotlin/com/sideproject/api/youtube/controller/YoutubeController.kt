@@ -7,6 +7,7 @@ import com.sideproject.common.security.PermitAll
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -30,10 +31,40 @@ class YoutubeController(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @PermitAll
-    @GetMapping("/search")
-    fun search(@Valid youtubeSearchRequest: YoutubeSearchRequest ): ResponseEntity<List<YoutubeVideoDto>> {
-        log.info("youtubeSearchRequest : {} ",youtubeSearchRequest)
-        return ResponseEntity.ok(youtubeService.search(youtubeSearchRequest))
+//    @GetMapping("/search")
+//    fun search(@Valid youtubeSearchRequest: YoutubeSearchRequest ): ResponseEntity<List<YoutubeVideoDto>> {
+//        log.info("youtubeSearchRequest : {} ",youtubeSearchRequest)
+//        return ResponseEntity.ok(youtubeService.search(youtubeSearchRequest))
+//    }
+
+    @GetMapping("/playlist")
+    fun getYoutubePlayLists(): ResponseEntity<Any>{
+        log.info("도착은 했다만")
+        return ResponseEntity.ok(youtubeService.getPlayLists())
     }
+
+    @GetMapping("/playlist/items")
+    fun getPlayListItem(
+        @RequestParam("playlistId") playlistId: String
+    ): ResponseEntity<Any>{
+        return ResponseEntity.ok(youtubeService.getPlayListItem(playlistId))
+    }
+
+    @GetMapping("/playlist/video")
+    fun getMyVideo(
+        @RequestParam("id") id: String
+    ): ResponseEntity<Any>{
+        return ResponseEntity.ok(youtubeService.getMyVideo(id))
+    }
+
+    @GetMapping("/playlist/video/comment")
+    fun getMyVideoComments(
+        @RequestParam("videoId") videoId: String
+    ): ResponseEntity<Any>{
+        return ResponseEntity.ok(youtubeService.getMyVideoComments(videoId))
+    }
+
+
+
+
 }

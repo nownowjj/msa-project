@@ -14,11 +14,16 @@ class JwtProvider(
 ) {
     private val key = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun createAccessToken(userId: Long): String =
-        Jwts.builder()
-            .setSubject(userId.toString())
-            .setIssuedAt(Date())
+    fun createAccessToken(email: String): String {
+        val claims = Jwts.claims().setSubject(email)
+        val now = Date()
+        val validity = Date(now.time + 3600 * 10)
+
+        return Jwts.builder()
+            .setClaims(claims)
+            .setIssuedAt(now)
             .setExpiration(Date(System.currentTimeMillis() + 1000 * 60 * 60))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
+    }
 }

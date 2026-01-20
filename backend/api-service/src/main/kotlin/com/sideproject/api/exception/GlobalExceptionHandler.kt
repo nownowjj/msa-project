@@ -1,11 +1,14 @@
 package com.sideproject.api.exception
 
 import com.sideproject.api.security.UnauthorizedException
+import feign.FeignException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import java.time.LocalDateTime
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -47,5 +50,18 @@ class GlobalExceptionHandler {
                 "errors" to errors
             )
         )
+    }
+
+    @ExceptionHandler(FeignException::class)
+    fun handleFeignException(e: FeignException): ResponseEntity<Map<String, Any>> {
+        log.error("Feign Client Error: status={}, message={}", e.status(), e.contentUTF8())
+
+        val status = HttpStatus.valueOf(if (e.status() > 0) e.status() else 500)
+        return ResponseEntity.status(status).body(mapOf(
+            "timestamp" to LocalDateTime.now(),
+            "status" to status.value(),
+            "error" to "YouTube API 호출 중 오류가 발생했습니다.",
+            "details" to e.contentUTF8()
+        ))
     }
 }

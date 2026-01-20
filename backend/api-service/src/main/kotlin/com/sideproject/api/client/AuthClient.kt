@@ -4,10 +4,13 @@ package com.sideproject.api.client
 import com.sideproject.common.dto.GoogleLoginRequestCode
 import com.sideproject.common.auth.AuthVerifyResponse
 import com.sideproject.common.dto.LoginResponse
+import com.sideproject.common.dto.TokenInfoResponse
 import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestParam
 
 @FeignClient(
     name = "auth-service",
@@ -20,20 +23,13 @@ interface AuthClient {
         @RequestHeader("Authorization") token: String
     ): AuthVerifyResponse
 
-//    @PostMapping("/auth/login")
-//    fun login(
-//        @RequestBody request: LoginRequest
-//    ): LoginResponse
-
-    // ⭐ Google Login
-//    @PostMapping("/auth/google")
-//    fun googleLogin(
-//        @RequestBody request: GoogleLoginRequest
-//    ): LoginResponse
 
     // ⭐ Google Login with code
     @PostMapping("/auth/google")
     fun googleLoginWithCode(
         @RequestBody request: GoogleLoginRequestCode
     ): LoginResponse
+
+    @GetMapping("/auth/token")
+    fun getToken(@RequestParam("email") email: String): TokenInfoResponse
 }

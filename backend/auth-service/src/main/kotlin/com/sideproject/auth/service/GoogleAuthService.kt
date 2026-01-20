@@ -1,6 +1,8 @@
 package com.sideproject.auth.service
 
+import com.google.api.client.auth.oauth2.TokenRequest
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest
+import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.sideproject.auth.component.GoogleTokenVerifier
@@ -9,6 +11,7 @@ import com.sideproject.auth.entity.AuthProvider
 import com.sideproject.auth.entity.User
 import com.sideproject.auth.jwt.JwtProvider
 import com.sideproject.auth.repository.UserRepository
+import com.sideproject.common.dto.TokenInfoResponse
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -40,6 +43,10 @@ class GoogleAuthService(
         // 3. DB 저장 및 토큰 업데이트 로직
         val existingUser = userRepository.findByEmail(googleUser.email)
 
+        // 만료 시간 계산 (현재 시간 + 구글에서 준 expires_in 초)
+        // tokens.expiresInSeconds가 보통 Long 타입으로 제공됩니다.
+        val expiresAt = LocalDateTime.now().plusSeconds(3600)
+
         val user = if (existingUser != null) {
             log.info("유저 이미 존재해!!")
             // 2. 기존 유저: 필드만 수정 (트랜잭션 종료 시 Dirty Checking으로 자동 업데이트)
@@ -48,7 +55,9 @@ class GoogleAuthService(
                     name = googleUser.name,
                     picture = googleUser.picture,
                     accessToken = tokens.accessToken,
-                    refreshToken = tokens.refreshToken
+                    refreshToken = tokens.refreshToken,
+                    expiresAt = expiresAt
+
                 )
             }
         } else {
@@ -58,21 +67,67 @@ class GoogleAuthService(
                 User(
                     email = googleUser.email,
                     name = googleUser.name,
+                    picture = googleUser.picture,
                     provider = AuthProvider.GOOGLE,
                     providerId = googleUser.sub,
                     googleAccessToken = tokens.accessToken,
-                    googleRefreshToken = tokens.refreshToken
+                    googleRefreshToken = tokens.refreshToken,
+                    googleTokenExpiresAt = expiresAt
                 )
             )
         }
 
         // 4. JWT 발급
-        val accessToken = jwtProvider.createAccessToken(user.id)
+        val accessToken = jwtProvider.createAccessToken(user.email)
 
         return LoginResponse(accessToken = accessToken)
     }
 
-    fun exchangeCodeForTokens(code: String): GoogleTokens {
+
+    fun getOrRefreshAccessToken(email: String): TokenInfoResponse {
+        val user = userRepository.findByEmail(email) ?: throw Exception("User not found")
+
+        // 만료 5분 전인지 체크 (Proactive Refresh)
+        val isExpired = user.googleTokenExpiresAt?.minusMinutes(5)?.isBefore(LocalDateTime.now()) ?: true
+
+        return if (isExpired) {
+            refreshGoogleToken(user)
+        } else {
+            TokenInfoResponse(user.googleAccessToken!!, user.googleTokenExpiresAt!!)
+        }
+    }
+
+    // DB refresh_token으로 youtube access_token 발급
+    private fun refreshGoogleToken(user: User): TokenInfoResponse {
+        val user = userRepository.findByEmail(user.email)
+            ?: throw RuntimeException("유저를 찾을 수 없습니다.")
+
+        val refreshToken = user.googleRefreshToken
+            ?: throw RuntimeException("Refresh Token이 없습니다. 재로그인이 필요합니다.")
+
+        // 구글 서버에 새 토큰 요청
+        val response = TokenRequest(
+            NetHttpTransport(),
+            GsonFactory.getDefaultInstance(),
+            GenericUrl("https://oauth2.googleapis.com/token"),
+            "refresh_token"
+        ).set("client_id", clientId)
+            .set("client_secret", clientSecret)
+            .set("refresh_token", refreshToken)
+            .set("grant_type", "refresh_token")
+            .execute()
+
+        val newAccessToken = response.accessToken
+
+        // 2. 새 정보 업데이트
+        user.googleAccessToken = newAccessToken
+        user.googleTokenExpiresAt = LocalDateTime.now().plusSeconds(3600)
+        userRepository.save(user)
+
+        return TokenInfoResponse(user.googleAccessToken!!, user.googleTokenExpiresAt!!)
+    }
+
+    private fun exchangeCodeForTokens(code: String): GoogleTokens {
         val tokenResponse = GoogleAuthorizationCodeTokenRequest(
             NetHttpTransport(),
             GsonFactory.getDefaultInstance(),

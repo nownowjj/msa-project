@@ -18,13 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 class GoogleOAuthController(
     private val authServiceClient: AuthServiceClient
 ) {
-    // 구글 로그인만을 위한 API
-//    @PostMapping("/google")
-//    fun googleLogin(
-//        @RequestBody request: GoogleLoginRequest
-//    ): LoginResponse {
-//        return authServiceClient.googleLogin(request.idToken)
-//    }
 
     // Google -> React에서 받은 code
     @PostMapping("/google")
