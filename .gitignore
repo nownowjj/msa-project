@@ -42,3 +42,7 @@ bin/
 .DS_Store
 
 .env
+
+application.yml
+
+application-dev.yml

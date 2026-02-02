@@ -4,3 +4,39 @@ server:
 service:
   auth:
     base-url: http://localhost:8001
+
+jwt:
+  secret:
+
+youtube:
+  api-key:
+  base-url : https://www.googleapis.com/youtube/v3
+
+gemini:
+  api:
+    key:
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
+    username:
+    password:
+
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 900000
+
+  data:
+    redis:
+      host: redis-16574.c340.ap-northeast-2-1.ec2.cloud.redislabs.com
+      port: 16574
+      password:
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
