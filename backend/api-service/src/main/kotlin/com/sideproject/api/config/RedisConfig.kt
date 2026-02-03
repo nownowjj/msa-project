@@ -1,5 +1,9 @@
 package com.sideproject.api.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,7 +22,7 @@ class RedisConfig {
     lateinit var host: String
 
     @Value("\${spring.data.redis.port}")
-    var port: Int = 6379
+    var port: Int = 16574
 
     @Value("\${spring.data.redis.password}")
     lateinit var password: String
@@ -31,12 +35,26 @@ class RedisConfig {
     }
 
     @Bean
-    fun redisTemplate(): RedisTemplate<String, Any> {
+    fun redisTemplate(connectionFactory: RedisConnectionFactory): RedisTemplate<String, Any> {
         val redisTemplate = RedisTemplate<String, Any>()
-        redisTemplate.setConnectionFactory(redisConnectionFactory())
-        // Java 객체를 JSON 형태로 저장하기 위한 Serializer 설정
+        redisTemplate.setConnectionFactory(connectionFactory)
+
+        // KotlinModule이 등록된 ObjectMapper 생성
+        val objectMapper = ObjectMapper()
+            .registerModule(KotlinModule.Builder().build()) // Kotlin 데이터 클래스 인식용
+            .registerModule(JavaTimeModule()) // LocalDateTime 등을 위해 추가 권장
+            .activateDefaultTyping(
+                BasicPolymorphicTypeValidator.builder().allowIfBaseType(Any::class.java).build(),
+                ObjectMapper.DefaultTyping.EVERYTHING
+            )
+
+        val serializer = GenericJackson2JsonRedisSerializer(objectMapper)
+
         redisTemplate.keySerializer = StringRedisSerializer()
-        redisTemplate.valueSerializer = GenericJackson2JsonRedisSerializer()
+        redisTemplate.valueSerializer = serializer
+        redisTemplate.hashKeySerializer = StringRedisSerializer()
+        redisTemplate.hashValueSerializer = serializer
+
         return redisTemplate
     }
 }

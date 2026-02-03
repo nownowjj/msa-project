@@ -3,30 +3,6 @@ package com.sideproject.api.archive.dto
 import com.sideproject.api.archive.entity.Archive
 import java.time.LocalDateTime
 
-data class UrlMetadata(
-    val title: String?,
-    val thumbnail: String?,
-    val content: String
-)
-
-data class AiAnalysisResponse(
-    val summary: String,
-    val keywords: List<String>,
-    val category: String
-)
-
-data class ArchiveCreateRequest(
-    val title: String,
-    val content: String,
-    val keywords: List<String>? = null // 키워드는 선택
-)
-
-data class ArchiveUpdateRequest(
-    val title: String,
-    val content: String,
-    val keywords: List<String>? = null
-)
-
 
 data class ArchiveResponse(
     val id: Long,

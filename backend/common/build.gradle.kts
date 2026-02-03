@@ -13,10 +13,17 @@ dependencies {
     implementation("org.springframework.data:spring-data-jpa:3.2.0") // 스프링 버전과 맞춰주세요
 
     implementation("jakarta.validation:jakarta.validation-api:3.1.0")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
 }

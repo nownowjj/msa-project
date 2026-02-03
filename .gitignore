@@ -43,6 +43,6 @@ bin/
 
 .env
 
-application.yml
+**/application.yml
 
 application-dev.yml

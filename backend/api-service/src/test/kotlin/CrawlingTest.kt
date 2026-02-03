@@ -16,13 +16,10 @@ class CrawlingTest {
             .timeout(10_000)
             .get()
 
-        // .thumblist 기준으로 상위 li 5개 추출
-        val items = doc.select(".thumblist")
-            .mapNotNull { it.closest("li") }
-            .distinct()
+        val items = doc.select(".thumblist li.item") // .thumblist 안에 있는 li.item들을 직접 선택
             .take(5)
 
-        // 결과 출력
+
         items.forEachIndexed { index, li ->
             val link = li.selectFirst("a")?.attr("href") ?: ""
             val thumbnail = li.selectFirst(".area_thumb img")?.attr("src") ?: ""
@@ -32,9 +29,6 @@ class CrawlingTest {
             log.info("title     : $title")
             log.info("link      : https://blog.naver.com$link")
             log.info("thumbnail : $thumbnail")
-            log.info("")
-
-            println("asdsaddas")
         }
 
     }

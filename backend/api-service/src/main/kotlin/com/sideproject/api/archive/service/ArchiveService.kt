@@ -1,17 +1,16 @@
 package com.sideproject.api.archive.service
 
 import com.sideproject.api.archive.dto.ArchiveResponse
-import com.sideproject.api.archive.dto.ArchiveUpdateRequest
 import com.sideproject.api.archive.repository.ArchiveRepository
-import jakarta.persistence.EntityNotFoundException
-import org.springframework.data.repository.findByIdOrNull
-
+import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ArchiveService(
-    private val archiveRepository: ArchiveRepository
+    private val archiveRepository: ArchiveRepository,
+    private val scraperService:ScraperService,
+    private val redisTemplate: RedisTemplate<String, Any>
 ) {
 
     @Transactional(readOnly = true)
@@ -26,7 +25,17 @@ class ArchiveService(
         return archives.map { ArchiveResponse.from(it) }
     }
 
-//    fun createArchive()
+    // 1 & 2단계: URL 입력 시 메타데이터 추출 및 임시 저장
+//    fun scrapAndCache(url: String, userId: Long): UrlMetadataResponse {
+//        // 크롤링 수행 및 레디스 캐싱
+//        val metadata = scraperService.extract(url ,userId)
+//
+//        // Redis에 임시 저장 (UserId + URL 해시를 키로 사용 추천)
+//        val cacheKey = "temp:metadata:$userId"
+//        redisTemplate.opsForValue().set(cacheKey, metadata, Duration.ofMinutes(10))
+//
+//        return UrlMetadataResponse(metadata.title, metadata.thumbnailUrl)
+//    }
 
 
     /** 2. 아카이브 수정 */

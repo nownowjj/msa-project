@@ -94,6 +94,29 @@ class RedisConnectionTest @Autowired constructor(
         Thread.sleep(4000)
         assertThat(redisTemplate.hasKey(key)).isFalse()
     }
+
+    @Test
+    @DisplayName("6. 저장된 모든 키와 값 조회 테스트")
+    fun findAllKeysAndValuesTest() {
+        // 1. 모든 키 가져오기 (패턴 사용: 모든 키 조회는 "*")
+        val keys: Set<String> = redisTemplate.keys("*")
+
+        println("================ Redis Data List ================")
+        if (keys.isEmpty()) {
+            println("저장된 데이터가 없습니다.")
+        } else {
+            keys.forEach { key ->
+                val value = redisTemplate.opsForValue().get(key)
+                val type = redisTemplate.type(key)
+
+                println("Key: [$key] | Type: [$type] | Value: [$value]")
+            }
+        }
+        println("=================================================")
+
+        // 검증: 현재 비즈니스 로직에서 넣은 데이터가 잘 있는지 확인하고 싶다면
+        // assertThat(keys).anyMatch { it.startsWith("temp:metadata:") }
+    }
 }
 
 data class TestUser(

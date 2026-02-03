@@ -47,6 +47,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     implementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.withType<KotlinCompile> {
@@ -63,3 +64,9 @@ tasks.test {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
+}
