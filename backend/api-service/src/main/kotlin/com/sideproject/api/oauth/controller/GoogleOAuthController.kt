@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController
 @PermitAll
 @RestController
 @RequestMapping("/api/auth")
-//@RequestMapping("/api/oauth/google")
 @RequiredArgsConstructor
 class GoogleOAuthController(
     private val authServiceClient: AuthServiceClient

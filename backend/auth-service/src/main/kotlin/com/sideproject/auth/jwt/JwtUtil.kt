@@ -12,7 +12,7 @@ class JwtUtil {
 
     // 테스트용 시크릿 (실무에서는 환경변수/Secret 관리)
     private val secret = "mysupersecretkeymysupersecretkey" // 최소 256bit 이상
-    private val key: Key = Keys.hmacShaKeyFor(secret.toByteArray())
+    private val key = Keys.hmacShaKeyFor(secret.toByteArray())
 
     fun parseToken(token: String): Claims {
         return Jwts.parserBuilder()

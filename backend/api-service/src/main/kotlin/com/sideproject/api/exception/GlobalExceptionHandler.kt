@@ -17,6 +17,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException::class)
     fun handleUnauthorized(ex: UnauthorizedException): ResponseEntity<ErrorResponse> {
         val errorCode = ErrorCode.UNAUTHORIZED
+        log.error("errorCode = ${errorCode},${ex.printStackTrace()}")
         return ResponseEntity
             .status(errorCode.status)
             .body(ErrorResponse.of(errorCode))
@@ -25,6 +26,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(IllegalAccessException::class)
     fun handleForbidden(ex: IllegalAccessException): ResponseEntity<ErrorResponse> {
         val errorCode = ErrorCode.FORBIDDEN
+        log.error("errorCode = ${errorCode},${ex.printStackTrace()}")
         return ResponseEntity
             .status(errorCode.status)
             .body(ErrorResponse.of(errorCode))
@@ -33,6 +35,9 @@ class GlobalExceptionHandler {
     @ExceptionHandler(Exception::class)
     fun handleException(ex: Exception): ResponseEntity<ErrorResponse> {
         val errorCode = ErrorCode.INTERNAL_SERVER_ERROR
+
+        log.error("errorCode = ${errorCode},${ex.printStackTrace()}")
+
         return ResponseEntity
             .status(errorCode.status)
             .body(ErrorResponse.of(errorCode))

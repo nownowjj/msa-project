@@ -78,7 +78,7 @@ class GoogleAuthService(
         }
 
         // 4. JWT 발급
-        val accessToken = jwtProvider.createAccessToken(user.email)
+        val accessToken = jwtProvider.createAccessToken(user)
 
         return LoginResponse(accessToken = accessToken)
     }

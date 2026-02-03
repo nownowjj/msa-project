@@ -1,5 +1,7 @@
 package com.sideproject.auth.jwt
 
+import com.sideproject.auth.dto.AuthUser
+import com.sideproject.auth.entity.User
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
@@ -14,16 +16,28 @@ class JwtProvider(
 ) {
     private val key = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun createAccessToken(email: String): String {
-        val claims = Jwts.claims().setSubject(email)
+    fun createAccessToken(user: User): String {
         val now = Date()
-        val validity = Date(now.time + 3600 * 10)
 
         return Jwts.builder()
-            .setClaims(claims)
+            .setSubject(user.email)
+            .claim("userId", user.id)
             .setIssuedAt(now)
-            .setExpiration(Date(System.currentTimeMillis() + 1000 * 60 * 60))
+            .setExpiration(Date(now.time + 1000 * 60 * 6000 ))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
+    }
+
+    fun getAuthUser(token: String): AuthUser {
+        val claims = Jwts.parserBuilder()
+            .setSigningKey(key)
+            .build()
+            .parseClaimsJws(token)
+            .body
+
+        return AuthUser(
+            id = (claims["userId"] as Number).toLong(),
+            email = claims.subject
+        )
     }
 }

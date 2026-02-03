@@ -12,7 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    @Value("\${jwt.secret}") private val secretKey: String // application.yml의 secret key
+    private val jwtTokenFilter: JwtTokenFilter
 ) {
 
     @Bean
@@ -28,7 +28,6 @@ class SecurityConfig(
                 it
                     .requestMatchers(
                         "/api/permitAll/**",
-                        "/api/auth/login",
                         "/api/oauth/**",
                         "/api/auth/**",
                     ).permitAll()
@@ -36,7 +35,7 @@ class SecurityConfig(
             }
             // UsernamePasswordAuthenticationToken 필터 앞에 우리가 만든 JwtTokenFilter 추가
             http.addFilterBefore(
-                JwtTokenFilter(secretKey),
+                jwtTokenFilter,
                 UsernamePasswordAuthenticationFilter::class.java
             )
 

@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import MyPage from './pages/MyPage';
 import MyPlayListPage from './pages/MyPlayListPage'; // 아까 만든 페이지
 import PlaylistDetailPage from './pages/PlaylistDetailPage';
+import DashBoard from './pages/DashBoard';
+import './App.css';
 
 // 1. QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
@@ -36,6 +38,9 @@ function App() {
           {/* 재생목록 페이지 경로 추가 */}
           <Route path="/playlists" element={<MyPlayListPage />} />
           <Route path="/playlists/:playlistId" element={<PlaylistDetailPage />} />
+
+          {/* 대시보드 */}
+          <Route path="/board" element={<DashBoard />} />
         </Routes>
       </BrowserRouter>
       
