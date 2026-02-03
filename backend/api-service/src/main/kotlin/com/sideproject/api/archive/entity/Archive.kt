@@ -27,6 +27,9 @@ class Archive(
     @Column(nullable = false)
     val url: String,
 
+    @Column(name = "use_yn", nullable = false, length = 1)
+    var useYn: String = "Y", // 기본값 'Y' 설정
+
     @Column(length = 255)
     val title: String? = null,
 

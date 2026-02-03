@@ -1,5 +1,6 @@
 package com.sideproject.api.archive.controller
 
+import com.sideproject.api.archive.dto.ArchiveCreateRequest
 import com.sideproject.api.archive.dto.ArchiveResponse
 import com.sideproject.api.archive.service.ArchiveService
 import com.sideproject.api.archive.service.GeminiService
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -38,7 +41,16 @@ class ArchiveController(
     ): List<ArchiveResponse> {
         return archiveService.getMyFolderArchive(user.id, folderId)
     }
-//
+
+
+    @PostMapping
+    fun createArchive(
+        @RequestBody request: ArchiveCreateRequest,
+        @AuthenticationPrincipal user: AuthUser
+    ): ArchiveResponse {
+        return archiveService.createArchive(user.id, request)
+    }
+
 //    /** 아카이브 수정 */
 //    @PutMapping("/{id}")
 //    fun updateArchive(

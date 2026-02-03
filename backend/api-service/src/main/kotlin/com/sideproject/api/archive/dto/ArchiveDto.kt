@@ -4,6 +4,15 @@ import com.sideproject.api.archive.entity.Archive
 import java.time.LocalDateTime
 
 
+data class ArchiveCreateRequest(
+    val url: String,
+    val title: String,
+    val thumbnailUrl: String?,
+    val aiSummary: String?,
+    val folderId: Long,
+    val keywords: List<String>?
+)
+
 data class ArchiveResponse(
     val id: Long,
     val userId: Long,

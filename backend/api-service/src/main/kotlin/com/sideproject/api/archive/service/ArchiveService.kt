@@ -1,7 +1,13 @@
 package com.sideproject.api.archive.service
 
+import com.sideproject.api.archive.dto.ArchiveCreateRequest
 import com.sideproject.api.archive.dto.ArchiveResponse
+import com.sideproject.api.archive.entity.Archive
+import com.sideproject.api.archive.entity.ArchiveKeyword
+import com.sideproject.api.archive.entity.Keyword
+import com.sideproject.api.archive.repository.ArchiveKeywordRepository
 import com.sideproject.api.archive.repository.ArchiveRepository
+import com.sideproject.api.archive.repository.KeywordRepository
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -9,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class ArchiveService(
     private val archiveRepository: ArchiveRepository,
+    private val keywordRepository: KeywordRepository,
+    private val archiveKeywordRepository: ArchiveKeywordRepository,
     private val scraperService:ScraperService,
     private val redisTemplate: RedisTemplate<String, Any>
 ) {
@@ -25,17 +33,59 @@ class ArchiveService(
         return archives.map { ArchiveResponse.from(it) }
     }
 
-    // 1 & 2단계: URL 입력 시 메타데이터 추출 및 임시 저장
-//    fun scrapAndCache(url: String, userId: Long): UrlMetadataResponse {
-//        // 크롤링 수행 및 레디스 캐싱
-//        val metadata = scraperService.extract(url ,userId)
-//
-//        // Redis에 임시 저장 (UserId + URL 해시를 키로 사용 추천)
-//        val cacheKey = "temp:metadata:$userId"
-//        redisTemplate.opsForValue().set(cacheKey, metadata, Duration.ofMinutes(10))
-//
-//        return UrlMetadataResponse(metadata.title, metadata.thumbnailUrl)
-//    }
+    @Transactional
+    fun createArchive(userId: Long, request: ArchiveCreateRequest): ArchiveResponse {
+        // 1. Archive 엔티티 생성 및 저장
+        val archive = Archive(
+            userId = userId,
+            folderId = request.folderId,
+            url = request.url,
+            title = request.title,
+            thumbnailUrl = request.thumbnailUrl,
+            aiSummary  = request.aiSummary
+        )
+        val savedArchive = archiveRepository.save(archive)
+
+        // 3. Keyword 및 ArchiveKeyword 매핑 처리
+        request.keywords?.filter { it.isNotBlank() }?.forEach { originalKeyword ->
+            // (1) 키워드 정규화 (예: 공백 제거, 소문자화 등)
+            val normalized = normalize(originalKeyword)
+
+            // (2) 정규화된 키워드로 기존 키워드 존재 여부 확인 (Find or Create)
+            val keywordEntity = keywordRepository.findByNormalizedKeyword(normalized)
+                ?: keywordRepository.save(
+                    Keyword(
+                        keyword = originalKeyword.trim(),
+                        normalizedKeyword = normalized
+                    )
+                )
+
+            // (3) 아카이브-키워드 연관 관계 저장
+            archiveKeywordRepository.save(
+                ArchiveKeyword(
+                    archive = savedArchive,
+                    keyword = keywordEntity
+                )
+            )
+        }
+
+
+
+        // 서비스 하단에서 직접 조립하여 반환
+        //  ㄴ 응답 시에는 DB 엔티티의 리스트가 아닌, 방금 우리가 처리한 데이터를 직접 주입
+        return ArchiveResponse(
+            id = savedArchive.id,
+            userId = savedArchive.userId,
+            folderId = savedArchive.folderId,
+            url = savedArchive.url,
+            title = savedArchive.title,
+            thumbnailUrl = savedArchive.thumbnailUrl,
+            aiSummary = savedArchive.aiSummary,
+            keywords = request.keywords ?: emptyList(),
+            createdAt = savedArchive.createdAt
+        )
+    }
+
 
 
     /** 2. 아카이브 수정 */
@@ -63,4 +113,11 @@ class ArchiveService(
 //
 //        archiveRepository.delete(archive)
 //    }
+
+    /**
+     * 키워드 정규화 로직 (예: " Kotlin " -> "kotlin")
+     */
+    private fun normalize(input: String): String {
+        return input.trim().lowercase().replace("\\s+".toRegex(), "")
+    }
 }
