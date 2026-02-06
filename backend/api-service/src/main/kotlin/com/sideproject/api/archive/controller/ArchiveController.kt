@@ -2,13 +2,16 @@ package com.sideproject.api.archive.controller
 
 import com.sideproject.api.archive.dto.ArchiveCreateRequest
 import com.sideproject.api.archive.dto.ArchiveResponse
+import com.sideproject.api.archive.dto.ArchiveUpdateRequest
 import com.sideproject.api.archive.service.ArchiveService
 import com.sideproject.api.archive.service.GeminiService
 import com.sideproject.api.archive.service.ScraperService
 import com.sideproject.auth.dto.AuthUser
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -51,23 +54,23 @@ class ArchiveController(
         return archiveService.createArchive(user.id, request)
     }
 
-//    /** 아카이브 수정 */
-//    @PutMapping("/{id}")
-//    fun updateArchive(
-//        @PathVariable id: Long,
-//        @RequestBody request: ArchiveUpdateRequest,
-//        @AuthenticationPrincipal user: UserPrincipal
-//    ): ArchiveResponse {
-//        return archiveService.updateArchive(id, user.name, request)
-//    }
-//
-//    /** 아카이브 삭제 */
-//    @DeleteMapping("/{id}")
-//    fun deleteArchive(
-//        @PathVariable id: Long,
-//        @AuthenticationPrincipal user: UserPrincipal
-//    ) {
-//        archiveService.deleteArchive(id, user.name)
-//    }
+    /** 아카이브 수정 */
+    @PatchMapping("/{id}")
+    fun updateArchive(
+        @PathVariable id: Long,
+        @RequestBody request: ArchiveUpdateRequest,
+        @AuthenticationPrincipal user: AuthUser
+    ): ArchiveResponse {
+        return archiveService.updateArchive(id, user.id, request)
+    }
+
+    /** 아카이브 삭제 */
+    @DeleteMapping("/{id}")
+    fun deleteArchive(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal user: AuthUser
+    ):Long {
+        return archiveService.deleteArchive(id, user.id)
+    }
 
 }

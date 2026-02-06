@@ -13,6 +13,13 @@ data class ArchiveCreateRequest(
     val keywords: List<String>?
 )
 
+data class ArchiveUpdateRequest(
+    val title: String,
+    val aiSummary: String?,
+    val folderId: Long,
+    val keywords: List<String>?
+)
+
 data class ArchiveResponse(
     val id: Long,
     val userId: Long,

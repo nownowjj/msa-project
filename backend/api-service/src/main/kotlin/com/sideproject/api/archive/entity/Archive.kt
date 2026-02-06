@@ -22,7 +22,7 @@ class Archive(
     val userId: Long,
 
     @Column(name = "folder_id", nullable = false)
-    val folderId: Long,
+    var folderId: Long,
 
     @Column(nullable = false)
     val url: String,
@@ -31,13 +31,13 @@ class Archive(
     var useYn: String = "Y", // 기본값 'Y' 설정
 
     @Column(length = 255)
-    val title: String? = null,
+    var title: String? = null,
 
     @Column(name = "thumbnail_url")
     val thumbnailUrl: String? = null,
 
     @Column(name = "ai_summary")
-    val aiSummary: String? = null,
+    var aiSummary: String? = null,
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
@@ -47,9 +47,29 @@ class Archive(
 
     @OneToMany(
         mappedBy = "archive",
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true
+        fetch = FetchType.LAZY,
     )
     val archiveKeywords: MutableList<ArchiveKeyword> = mutableListOf()
+
+    fun clearKeywords() {
+        this.archiveKeywords.clear()
+    }
+
+    // 수정 가능 필드 업데이트 로직
+    fun update(title: String, aiSummary: String?, folderId: Long) {
+        this.title = title
+        this.aiSummary = aiSummary
+        this.folderId = folderId
+    }
+
+    // soft delete 로직
+    fun delete() {
+        this.useYn = "N"
+    }
+
+    // Archive.kt 내부
+    fun addArchiveKeyword(archiveKeyword: ArchiveKeyword) {
+        this.archiveKeywords.add(archiveKeyword)
+    }
 }
 

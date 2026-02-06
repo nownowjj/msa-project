@@ -15,7 +15,7 @@ class GeminiController(
     private val geminiService: GeminiService
 ) {
 
-    /** 입력한 url MetaData 반환 및 key:userId Redis 저장 */
+    /** 입력한 url AI 요약 및 키워드 반환  */
     @GetMapping
     fun analyzeUrl(
         @RequestParam url: String,
