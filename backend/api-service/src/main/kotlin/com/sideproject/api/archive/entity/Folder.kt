@@ -34,7 +34,7 @@ class Folder (
     @Column(nullable = false, length = 100)
     var name: String,
 
-    /** 깊이 (1 ~ 4) */
+    /** 깊이 (1 ~ 3) */
     @Column(nullable = false)
     var depth: Int,
 

@@ -6,8 +6,8 @@ import com.sideproject.api.archive.dto.ArchiveUpdateRequest
 import com.sideproject.api.archive.entity.Archive
 import com.sideproject.api.archive.entity.ArchiveKeyword
 import com.sideproject.api.archive.entity.Keyword
-import com.sideproject.api.archive.repository.archiveKeyword.ArchiveKeywordRepository
 import com.sideproject.api.archive.repository.archive.ArchiveRepository
+import com.sideproject.api.archive.repository.archiveKeyword.ArchiveKeywordRepository
 import com.sideproject.api.archive.repository.keyword.KeywordRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
@@ -29,14 +29,14 @@ class ArchiveService(
 
     @Transactional(readOnly = true)
     // 사용자 전체 조회
-    fun getMyArchives(userId: Long): List<ArchiveResponse> {
+    fun getAllArchives(userId: Long): List<ArchiveResponse> {
         val archives = archiveRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
         return archives.map { ArchiveResponse.from(it) }
     }
 
     @Transactional(readOnly = true)
     // 사용자 폴더별 조회
-    fun getMyFolderArchive(userId: Long , folderId :Long): List<ArchiveResponse> {
+    fun getFolderArchive(userId: Long , folderId :Long): List<ArchiveResponse> {
         val archives = archiveRepository.findAllByUserIdAndFolderIdOrderByCreatedAtDesc(userId , folderId)
         return archives.map { ArchiveResponse.from(it) }
     }

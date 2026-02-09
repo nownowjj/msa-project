@@ -30,19 +30,19 @@ class ArchiveController(
 
     /** 본인 전체 아카이브 목록 조회 */
     @GetMapping
-    fun getMyArchives(
+    fun getAllArchives(
         @AuthenticationPrincipal user: AuthUser
     ): List<ArchiveResponse> {
-        return archiveService.getMyArchives(user.id)
+        return archiveService.getAllArchives(user.id)
     }
 
     /** 본인 폴더 아카이브  조회 */
     @GetMapping("/{folderId}")
-    fun getMyArchive(
+    fun getFolderArchive(
         @PathVariable folderId : Long,
         @AuthenticationPrincipal user: AuthUser
     ): List<ArchiveResponse> {
-        return archiveService.getMyFolderArchive(user.id, folderId)
+        return archiveService.getFolderArchive(user.id, folderId)
     }
 
 
