@@ -1,213 +1,198 @@
-import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import { fetchAllFolder } from '../../api/folder';
+import type { FolderNavigationResponse } from '../../types/folder';
+interface SidebarProps {
+  activeId: number | null; // 현재 선택된 폴더 ID (-1은 전체보기)
+  onSelect: (id: number, name: string) => void; // 폴더 클릭 시 ID를 변경할 함수
+}
 
-type Folder = {
-  id: number;
-  parentId: number | null;
-  name: string;
-  childCount: number;
-};
+const Sidebar = ({activeId , onSelect}: SidebarProps) => {
 
-const mockFolders: Folder[] = [
-  { id: 1, parentId: null, name: "개발", childCount: 6 },
-  { id: 2, parentId: 1, name: "백엔드", childCount: 2 },
-  { id: 3, parentId: 2, name: "스프링부트", childCount: 0 },
-  { id: 4, parentId: 2, name: "JPA", childCount: 0 },
-  { id: 5, parentId: 1, name: "프론트엔드", childCount: 0 },
-  { id: 6, parentId: 1, name: "인프라", childCount: 1 },
-  { id: 7, parentId: 6, name: "CI/CD", childCount: 0 },
-  { id: 8, parentId: 2, name: "백엔드1", childCount: 0 },
-  { id: 9, parentId: 2, name: "백엔드2", childCount: 0 },
-  { id: 10, parentId: 2, name: "백엔드3", childCount: 0 },
-  { id: 11, parentId: 2, name: "백엔드4", childCount: 0 },
-  { id: 12, parentId: 2, name: "백엔드5", childCount: 0 },
-];
-
-const Sidebar = () => {
-    const [expanded, setExpanded] = useState<Set<number>>(new Set());
-    const [activeId, setActiveId] = useState<number | null>(null);
-
-
-    const treeMap = useMemo(() => {
-        const map = new Map<number | null, Folder[]>();
-        mockFolders.forEach(f => {
-        map.set(f.parentId, [...(map.get(f.parentId) || []), f]);
-        });
-        return map;
-    }, []);
-
-    const toggle = (id: number) => {
-        setExpanded(prev => {
-        const next = new Set(prev);
-        next.has(id) ? next.delete(id) : next.add(id);
-        return next;
-        });
-    };
-
-    const renderFolders = (parentId: number | null, depth = 0) =>
-        treeMap.get(parentId)?.map(folder => {
-        const isExpanded = expanded.has(folder.id);
-        const isActive = activeId === folder.id;
-        const canExpand = folder.childCount > 0;
-
-        return (
-            <div key={folder.id}>
-            <FolderItem
-                active={isActive}
-                style={{ paddingLeft: 12 + depth * 14 }}
-                onClick={() => {
-                setActiveId(folder.id);
-                if (canExpand) toggle(folder.id);
-                }}
-            >
-                <FolderIcon>
-                {canExpand ? (isExpanded ? "📂" : "📁") : "📄"}
-                </FolderIcon>
-                <span>{folder.name}</span>
-                <FolderCount>{folder.childCount}</FolderCount>
-            </FolderItem>
-
-            {isExpanded && renderFolders(folder.id, depth + 1)}
-            </div>
-        );
-    });
+  const { data:folders , isLoading} = useQuery({
+    queryKey: ['folders'],
+    queryFn: fetchAllFolder,
+    staleTime: 1000 * 60 * 5
+  });
 
   return (
     <SidebarContainer>
-      <SidebarSection>
-        <SidebarTitle>폴더</SidebarTitle>
+      <Section>
+        <SectionTitle>탐색</SectionTitle>
+        <StaticItem 
+          active={activeId === -1} 
+          onClick={() => onSelect(-1,"전체보기")}
+          depth={2}
+        >
+          <span className="icon">🌍</span>
+          <span className="count">전체보기</span>
+        </StaticItem>
 
-        <FolderItem active={activeId === 0} onClick={() => setActiveId(0)}>
-          <FolderIcon>📂</FolderIcon>
-          <span>전체보기</span>
-          <FolderCount>42</FolderCount>
-        </FolderItem>
+        {/* <StaticItem 
+          active={activeId === -1} 
+          onClick={() => setActiveId(-1)}
+          depth={2}
+        >
+          <span className="icon">🌍</span>
+          <span className="text">좋아요 누른 기록</span>
+        </StaticItem> */}
+      </Section>
 
-        {renderFolders(null)}
-      </SidebarSection>
+      <Section>
+        <SectionTitle>내 폴더</SectionTitle>
+        {isLoading ? (
+          <LoadingText>폴더 불러오는 중...</LoadingText>
+        ) : (
+          folders?.map((folder) => (
+            <RecursiveFolderItem
+              key={folder.id}
+              folder={folder}
+              activeId={activeId}
+              onSelect={onSelect}
+            />
+          ))
+        )}
+      </Section>
 
-      <NewFolderButton>
-        <span>+</span>
-        <span>새 폴더</span>
-      </NewFolderButton>
+      <NewFolderButton>+ 새 폴더</NewFolderButton>
     </SidebarContainer>
   );
 };
 
+// 재귀 컴포넌트
+const RecursiveFolderItem = ({ 
+  folder, 
+  activeId, 
+  onSelect 
+}: { 
+  folder: FolderNavigationResponse; 
+  activeId: number | null;
+  onSelect: (id: number, name: string) => void;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const hasChildren = folder.children && folder.children.length > 0;
 
-const SidebarContainer = styled.aside`
-  width: 250px;
-  background: #ffffff; /* var(--bg-sidebar) */
-  border-right: 1px solid #e5e7eb; /* var(--border) */
-  padding: 24px 0;
-  overflow-y: auto;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-`;
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
 
-const SidebarSection = styled.div`
-  margin-bottom: 8px;
-`;
+  return (
+    <FolderWrapper>
+      <FolderRow 
+        active={activeId === folder.id} 
+        depth={folder.depth}
+        onClick={() => onSelect(folder.id,folder.name)}
+      >
+        <div className="left-section">
+          <ToggleButton onClick={handleToggle} visible={hasChildren}>
+            {isExpanded ? '▾' : '▸'}
+          </ToggleButton>
+          <span className="icon">{isExpanded ? '📂' : '📁'}</span>
+          <span className="name">{folder.name}</span>
+        </div>
+        <span className={folder.archiveCount > 0  ? 'count' : 'zero'} >{folder.archiveCount}</span>
+      </FolderRow>
 
-const SidebarTitle = styled.div`
-  padding: 0 24px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #9ca3af; /* var(--text-muted) */
-`;
-
-const FolderCount = styled.span`
-  margin-left: auto;
-  font-size: 12px;
-  color: #9ca3af;
-  background: #f3f4f6; /* var(--border-light) */
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-weight: 500;
-  transition: all 0.15s;
-`;
-
-const FolderItem = styled.div<{ active?: boolean }>`
-  padding: 10px 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-  color: ${props => (props.active ? '#2563eb' : '#4b5563')};
-  background: ${props => (props.active ? '#f9fafb' : 'transparent')};
-  font-size: 14px;
-  font-weight: ${props => (props.active ? '600' : '500')};
-  position: relative;
-
-  &:hover {
-    background: #f9fafb;
-    color: #111827;
-    
-    ${FolderCount} {
-      color: #111827;
-    }
-  }
-
-  /* Active 시 왼쪽 파란색 바 (Indicator) */
-  ${props =>
-    props.active &&
-    `
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: #2563eb;
-      border-radius: 0 2px 2px 0;
-    }
-    
-    ${FolderCount} {
-      background: rgba(37, 99, 235, 0.1);
-      color: #2563eb;
-    }
-  `}
-`;
-
-const FolderIcon = styled.span`
-  font-size: 18px;
-  width: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const FolderChildren = styled.div`
-  margin-left: 18px;
-`;
-
-const NewFolderButton = styled.button`
-  margin: 16px 24px 0;
-  width: calc(100% - 48px);
-  height: 40px;
-  border: 1px dashed #e5e7eb;
-  background: transparent;
-  color: #4b5563;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  &:hover {
-    border-color: #2563eb;
-    color: #2563eb;
-    background: rgba(37, 99, 235, 0.05);
-  }
-`;
+      {/* 재귀 호출: 열려있고 자식이 있을 때만 */}
+      {isExpanded && hasChildren && (
+        <ChildrenContainer>
+          {folder.children
+            .sort((a, b) => a.sortOrder - b.sortOrder) // 정렬 보장
+            .map((child) => (
+              <RecursiveFolderItem
+                key={child.id}
+                folder={child}
+                activeId={activeId}
+                onSelect={onSelect}
+              />
+            ))}
+        </ChildrenContainer>
+      )}
+    </FolderWrapper>
+  );
+};
 
 export default Sidebar;
+
+/* Styled Components */
+const SidebarContainer = styled.div`
+  width: 260px;
+  background: #f8f9fa;
+  height: 100vh;
+  padding: 20px 10px;
+  border-right: 1px solid #e9ecef;
+`;
+
+const Section = styled.div`
+  margin-bottom: 24px;
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 12px;
+  color: #adb5bd;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  text-transform: uppercase;
+`;
+
+const FolderRow = styled.div<{ active: boolean; depth: number }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px;
+  padding-left: ${props => (props.depth - 1) * 12 + 12}px;
+  cursor: pointer;
+  border-radius: 6px;
+  background: ${props => props.active ? '#e7f5ff' : 'transparent'};
+  color: ${props => props.active ? '#1971c2' : '#495057'};
+
+  &:hover {
+    background: #f1f3f5;
+  }
+
+  .left-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .count {
+    font-size: 12px;
+    color: black;
+  }
+
+  .zero{
+    font-size: 11px;
+    color: #ced4da;
+  }
+`;
+
+const ToggleButton = styled.button<{ visible: boolean }>`
+  visibility: ${props => props.visible ? 'visible' : 'hidden'};
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  color: #adb5bd;
+`;
+
+const ChildrenContainer = styled.div`
+  // padding-left:10px;
+`;
+const StaticItem = styled(FolderRow)``;
+const FolderWrapper = styled.div``;
+const LoadingText = styled.div`padding: 12px; font-size: 13px; color: #868e96;`;
+const NewFolderButton = styled.button`
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px dashed #ced4da;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #868e96;
+  &:hover { background: #f8f9fa; }
+`;

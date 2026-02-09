@@ -1,77 +1,58 @@
-import { useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
-import { fetchArchivesByFolder } from "../../api/archive";
-import dayjs from "dayjs";
-import type { SelectedFolder } from "../../pages/DashBoard";
 
-interface ContentProps {
-  activeFolder: SelectedFolder;
-}
-
-const Content = ( {activeFolder}: ContentProps) => {
+const Content = () => {
+    const dummyData = [
+        { title: "React 19의 새로운 기능들과 Server Components 심층 분석", type: "Article", date: "2일 전", tags: ["#React", "#Frontend"] },
+        { title: "CSS Grid와 Flexbox를 활용한 반응형 레이아웃 가이드", type: "Video", date: "3일 전", tags: ["#CSS", "#Layout"] },
+        { title: "TypeScript 5.0 신규 기능 및 타입 시스템 개선사항", type: "Article", date: "5일 전", tags: ["#TypeScript", "#JS"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+        { title: "Node.js 성능 최적화 기법: 메모리 관리", type: "Article", date: "1주 전", tags: ["#NodeJS", "#Backend"] },
+    ];
     
-    const {data: archives ,isLoading} =useQuery({
-      // key에 ID를 넣어야 ID가 바뀔 때마다 캐시를 관리하고 새로 요청함
-      queryKey: ['archives', activeFolder.id],
-      queryFn: () => fetchArchivesByFolder(activeFolder.id),
-      enabled: activeFolder.id !== null, // ID가 있을 때만 쿼리 수행
-    })
-
     return (
         <MainContent>
             <ContentHeader>
-                <ContentTitle>{activeFolder.name}</ContentTitle>
+                <ContentTitle>전체보기</ContentTitle>
                 <ViewOptions>
                 <ViewBtn active>그리드</ViewBtn>
                 <ViewBtn>리스트</ViewBtn>
                 </ViewOptions>
             </ContentHeader>
 
-            {/* 1. 로딩 중이거나 데이터가 없을 때의 예외 처리 */}
-            {/* {isLoading && <LoadingPlaceholder>데이터를 불러오는 중입니다...</LoadingPlaceholder>} */}
-
             <CardsGrid>
-                {archives?.map((item) => (
-                  <Card key={item.id} onClick={() => window.open(item.url, '_blank')}>
-                    <CardThumbnail 
-                      style={{ 
-                        background: item.thumbnailUrl 
-                        ? `url(${item.thumbnailUrl}) no-repeat center / cover` 
-                        : '#f1f3f5' // 이미지가 없을 때 배경색 지정 가능
-                      }}
-                    >
-                      {!item.thumbnailUrl && <span className="no-img">No Image</span>}
-                      {/* URL에서 도메인만 추출하거나 특정 타입을 보여줄 수 있음 */}
-                      <CardType>{new URL(item.url).hostname.replace('www.', '')}</CardType>
-                    </CardThumbnail>
-
-                    <CardContent>
-                      <CardTitle>
-                        {item.title || '제목 없음'}
-                      </CardTitle>
-                      
-                      <CardSummary>
-                        {item.aiSummary || 'AI 요약 정보가 생성 중이거나 없습니다.'}
-                      </CardSummary>
-
-                      <CardTags>
-                        {item.keywords.map(tag => (
-                          <Tag key={tag}>#{tag}</Tag>
-                        ))}
-                      </CardTags>
-
-                      <CardFooter>
-                        {/* dayjs 등을 활용해 날짜 포맷팅: 2026.02.09 */}
-                        <CardDate>📅 {dayjs(item.createdAt).format('YYYY.MM.DD')}</CardDate>
-                        
-                        <CardActions>
-                          <ActionBtn title="수정">✏️</ActionBtn>
-                          <ActionBtn title="이동">📁</ActionBtn>
-                          <ActionBtn title="삭제" className="delete">🗑️</ActionBtn>
-                        </CardActions>
-                      </CardFooter>
-                    </CardContent>
-                  </Card>
+                {dummyData.map((item, index) => (
+                    <Card key={index}>
+                        <CardThumbnail index={index}>
+                        <CardType>{item.type}</CardType>
+                        </CardThumbnail>
+                        <CardContent>
+                        <CardTitle>{item.title}</CardTitle>
+                        <CardSummary>
+                            AI가 요약한 본문 내용이 여기에 들어갑니다. 최대 3줄까지 노출되며 그 이상은 생략됩니다...
+                        </CardSummary>
+                        <CardTags>
+                            {item.tags.map(tag => <Tag key={tag}>{tag}</Tag>)}
+                        </CardTags>
+                        <CardFooter>
+                            <CardDate>📅 {item.date}</CardDate>
+                            <CardActions>
+                            <ActionBtn>✏️</ActionBtn>
+                            <ActionBtn>📁</ActionBtn>
+                            <ActionBtn>🗑️</ActionBtn>
+                            </CardActions>
+                        </CardFooter>
+                        </CardContent>
+                    </Card>
                 ))}
             </CardsGrid>
         </MainContent>
