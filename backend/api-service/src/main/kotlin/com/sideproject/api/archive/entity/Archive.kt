@@ -24,7 +24,7 @@ class Archive(
     @Column(name = "folder_id", nullable = false)
     var folderId: Long,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     val url: String,
 
     @Column(name = "use_yn", nullable = false, length = 1)
@@ -33,10 +33,10 @@ class Archive(
     @Column(length = 255)
     var title: String? = null,
 
-    @Column(name = "thumbnail_url")
+    @Column(name = "thumbnail_url", columnDefinition = "TEXT")
     val thumbnailUrl: String? = null,
 
-    @Column(name = "ai_summary")
+    @Column(name = "ai_summary", columnDefinition = "TEXT") // 혹은 아예 TEXT 타입으로 지정
     var aiSummary: String? = null,
 
     @Column(name = "created_at", nullable = false, updatable = false)

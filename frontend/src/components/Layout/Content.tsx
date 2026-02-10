@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import styled from "styled-components";
-import { fetchArchivesByFolder } from "../../api/archive";
-import dayjs from "dayjs";
+import styled, { keyframes } from "styled-components";
+import { fetchArchivesAll, fetchArchivesByFolder } from "../../api/archive";
 import type { SelectedFolder } from "../../pages/DashBoard";
+import ArchiveCard from "../Archive/ArchiveCard";
+import type { ArchiveResponse } from "../../types/archive";
 
-interface ContentProps {
-  activeFolder: SelectedFolder;
-}
 
-const Content = ( {activeFolder}: ContentProps) => {
+const Content = ( { activeFolder ,onEditClick }: { activeFolder: SelectedFolder ,onEditClick: (item: ArchiveResponse) => void }) => {
     
     const {data: archives ,isLoading} =useQuery({
       // key에 ID를 넣어야 ID가 바뀔 때마다 캐시를 관리하고 새로 요청함
       queryKey: ['archives', activeFolder.id],
-      queryFn: () => fetchArchivesByFolder(activeFolder.id),
+      queryFn: () => activeFolder.id === -1 ? 
+                        fetchArchivesAll():
+                        fetchArchivesByFolder(activeFolder.id),
       enabled: activeFolder.id !== null, // ID가 있을 때만 쿼리 수행
     })
 
@@ -27,51 +27,40 @@ const Content = ( {activeFolder}: ContentProps) => {
                 </ViewOptions>
             </ContentHeader>
 
-            {/* 1. 로딩 중이거나 데이터가 없을 때의 예외 처리 */}
-            {/* {isLoading && <LoadingPlaceholder>데이터를 불러오는 중입니다...</LoadingPlaceholder>} */}
-
             <CardsGrid>
-                {archives?.map((item) => (
-                  <Card key={item.id} onClick={() => window.open(item.url, '_blank')}>
-                    <CardThumbnail 
-                      style={{ 
-                        background: item.thumbnailUrl 
-                        ? `url(${item.thumbnailUrl}) no-repeat center / cover` 
-                        : '#f1f3f5' // 이미지가 없을 때 배경색 지정 가능
-                      }}
-                    >
-                      {!item.thumbnailUrl && <span className="no-img">No Image</span>}
-                      {/* URL에서 도메인만 추출하거나 특정 타입을 보여줄 수 있음 */}
-                      <CardType>{new URL(item.url).hostname.replace('www.', '')}</CardType>
-                    </CardThumbnail>
+                {/* 1. 로딩 중일 때 (선택사항) */}
+                {isLoading && <LoadingWrapper><LoadingText>데이터를 불러오는 중입니다...</LoadingText></LoadingWrapper>}
 
-                    <CardContent>
-                      <CardTitle>
-                        {item.title || '제목 없음'}
-                      </CardTitle>
-                      
-                      <CardSummary>
-                        {item.aiSummary || 'AI 요약 정보가 생성 중이거나 없습니다.'}
-                      </CardSummary>
 
-                      <CardTags>
-                        {item.keywords.map(tag => (
-                          <Tag key={tag}>#{tag}</Tag>
-                        ))}
-                      </CardTags>
+                {/* 2. 데이터가 없을 때 (Empty State) */}
+                {!isLoading && archives?.length === 0 && (
+                  <EmptyWrapper>
+                    <EmptyIcon>📁</EmptyIcon>
+                    <EmptyTitle>아카이브가 비어 있습니다</EmptyTitle>
+                    <EmptyDescription>
+                      {activeFolder.id === -1 
+                        ? "아직 저장된 링크가 없네요. 첫 아카이브를 등록해보세요!" 
+                        : `'${activeFolder.name}' 폴더에 저장된 링크가 없습니다.`}
+                    </EmptyDescription>
 
-                      <CardFooter>
-                        {/* dayjs 등을 활용해 날짜 포맷팅: 2026.02.09 */}
-                        <CardDate>📅 {dayjs(item.createdAt).format('YYYY.MM.DD')}</CardDate>
-                        
-                        <CardActions>
-                          <ActionBtn title="수정">✏️</ActionBtn>
-                          <ActionBtn title="이동">📁</ActionBtn>
-                          <ActionBtn title="삭제" className="delete">🗑️</ActionBtn>
-                        </CardActions>
-                      </CardFooter>
-                    </CardContent>
-                  </Card>
+                    <AddButton onClick={() => console.log('등록 모달 열기')}>
+                      + 아카이브 추가하기
+                    </AddButton>
+                  </EmptyWrapper>
+                )}
+
+                {!isLoading && archives?.map((item) => (
+                  <ArchiveCard
+                    key={item.id} 
+                    item={item} 
+                    onDelete={(id) => {
+                      if(confirm('정말 삭제하시겠습니까?')) {
+                        // 삭제 로직 호출
+                      }
+                    }}
+                    onEdit={() => onEditClick(item)} // 카드에서 수정 클릭 시 핸들러 호출
+                    // onEdit, onMove 등도 필요하면 여기서 핸들링
+                  />
                 ))}
             </CardsGrid>
         </MainContent>
@@ -130,151 +119,93 @@ const CardsGrid = styled.div`
   gap: 24px;
 `;
 
-const CardActions = styled.div`
+
+
+// ----------------
+
+const EmptyWrapper = styled.div`
+  grid-column: 1 / -1; /* 그리드 전체 가로 칸을 차지하도록 설정 */
   display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
-`;
-
-const Card = styled.article`
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  position: relative;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    border-color: #2563eb;
-
-    ${CardActions} {
-      opacity: 1;
-    }
-  }
-`;
-
-const CardThumbnail = styled.div<{ index?: number }>`
-  width: 100%;
-  height: 200px;
-  background: ${props => {
-    const gradients = [
-      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-    ];
-    return gradients[(props.index || 0) % gradients.length];
-  }};
-  position: relative;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const CardType = styled.span`
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #111827;
-`;
-
-const CardContent = styled.div`
-  padding: 20px;
-`;
-
-const CardTitle = styled.h3`
-  font-size: 17px;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`;
-
-const CardSummary = styled.p`
-  font-size: 14px;
-  color: #4b5563;
-  line-height: 1.6;
-  margin-bottom: 16px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`;
-
-const CardTags = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-`;
-
-const Tag = styled.span`
-  padding: 4px 10px;
-  background: #f3f4f6;
-  color: #4b5563;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s;
-
-  &:hover {
-    background: rgba(37, 99, 235, 0.1);
-    color: #2563eb;
-  }
-`;
-
-const CardFooter = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
-`;
-
-const CardDate = styled.span`
-  font-size: 13px;
-  color: #9ca3af;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const ActionBtn = styled.button`
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: #f3f4f6;
-  color: #4b5563;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  background: #ffffff;
+  border: 2px dashed #e9ecef;
+  border-radius: 12px;
+  margin: 20px 0;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 48px;
+  margin-bottom: 16px;
+  filter: grayscale(1); /* 무채색 느낌으로 강조 빼기 */
+  opacity: 0.5;
+`;
+
+const EmptyTitle = styled.h3`
+  font-size: 18px;
+  color: #495057;
+  margin-bottom: 8px;
+`;
+
+const EmptyDescription = styled.p`
+  font-size: 14px;
+  color: #adb5bd;
+  margin-bottom: 24px;
+`;
+
+const AddButton = styled.button`
+  padding: 10px 20px;
+  background-color: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 
   &:hover {
-    background: #2563eb;
-    color: white;
+    background-color: #339af0;
   }
 `;
+
+
+// ----------
+// 1. 회전 애니메이션 정의
+const rotate = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`;
+
+// 2. 로딩 컨테이너 (EmptyWrapper와 유사하게 그리드 전체 차지)
+const LoadingWrapper = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  gap: 16px;
+`;
+
+// 3. 스피너 (회전하는 원형 아이콘)
+const Spinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f1f3f5;
+  border-top: 4px solid #4dabf7; // 포인트 컬러
+  border-radius: 50%;
+  animation: ${rotate} 1s linear infinite;
+`;
+
+// 4. 로딩 메시지 텍스트
+const LoadingText = styled.p`
+  font-size: 15px;
+  color: #868e96;
+  font-weight: 500;
+`;
+
 
 export default Content;

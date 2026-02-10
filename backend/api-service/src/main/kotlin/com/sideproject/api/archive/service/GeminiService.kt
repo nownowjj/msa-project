@@ -31,7 +31,7 @@ class GeminiService(
             ?: recoverMetadata(url, userId)
 
         val content = cachedData.content
-            ?: throw IllegalArgumentException("분석할 본문 내용이 없습니다.")
+            ?: return GeminiAiResponse("AI 요약에 실패 하였습니다.", null)
 
         // 2. Private AI 요청 메서드 호출
         return try {

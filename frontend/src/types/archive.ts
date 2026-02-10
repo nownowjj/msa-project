@@ -9,3 +9,22 @@ export interface ArchiveResponse {
     keywords: string[];           // 가공된 문자열 리스트
     createdAt: string;            // LocalDateTime은 JSON 직렬화 시 ISO 8601 문자열로 변환됨
 }
+
+export interface ArchiveMetadata {
+    title?: string;
+    thumbnailUrl?: string;
+}
+
+export interface ArchiveAiAnalyze {
+    summary?: string;
+    keywords?: string[];
+}
+
+export interface ArchiveCreateRequest {
+  url: string;
+    title: string;
+    thumbnailUrl: string | null;
+    aiSummary: string | null;
+    folderId: number;
+    keywords: string[] | null;
+}

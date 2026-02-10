@@ -120,7 +120,7 @@ export default Sidebar;
 const SidebarContainer = styled.div`
   width: 260px;
   background: #f8f9fa;
-  height: 100vh;
+  height: calc(100vh - 68px);
   padding: 20px 10px;
   border-right: 1px solid #e9ecef;
 `;

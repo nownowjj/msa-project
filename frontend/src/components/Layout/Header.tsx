@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const Header = () => {
+const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   return (
     <HeaderContainer>
       <Logo>
@@ -14,7 +14,7 @@ const Header = () => {
       </SearchContainer>
 
       <HeaderActions>
-        <PrimaryButton>
+        <PrimaryButton onClick={onAddClick}>
           <span>+</span>
           <span>새 링크 추가</span>
         </PrimaryButton>

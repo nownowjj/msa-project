@@ -8,7 +8,8 @@ class CrawlingTest {
     @Test
     fun crawlNaverBlogThumbnailList() {
         // given
-        val url = "https://blog.naver.com/PostList.naver?blogId=cherry_official&from=postList&categoryNo=31"
+        val url = "https://blog.naver.com/PostList.naver?blogId=cherry_official&from=postList&categoryNo=42"
+//        val url = "https://blog.naver.com/PostList.naver?blogId=cherry_official&from=postList&categoryNo=31"
 
         val doc = Jsoup.connect(url)
             .userAgent("Mozilla/5.0")
