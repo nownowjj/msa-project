@@ -1,23 +1,32 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
-import { fetchAllFolder } from "../../api/folder";
-import type { ArchiveCreateRequest, ArchiveResponse } from "../../types/archive";
+import { fetchArchiveAiAnalyze, fetchArchiveMetadata } from "../../api/archive";
+import { fetchAllFolder, findDefaultFolder } from "../../api/folder";
+import { useArchiveMutation } from "../../hooks/useArchiveMutation";
+import type { ArchiveResponse } from "../../types/archive";
 import FolderSelect from "../Folder/FolderSelect";
-import { createArchive, fetchArchiveAiAnalyze, fetchArchiveMetadata } from "../../api/archive";
 
 
 const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => void, data: ArchiveResponse | null }) => {
-    const queryClient = useQueryClient();
+    const {createArchive, updateArchive, deleteArchive, isSaving ,isDeleting } = useArchiveMutation(onClose);
 
     // 1. 자동 입력을 위한 상태 관리
     const [url, setUrl] = useState('');
     const [title, setTitle] = useState('');
     const [thumbnail, setThumbnail] = useState('');
-    const [selectedFolderId, setSelectedFolderId] = useState<number | string>('all');
+    const [selectedFolderId, setSelectedFolderId] = useState<number>(0);
 
     const [summary, setSummary] = useState('');
     const [keywords, setKeywords] = useState<string[]>([]);
+
+    // 폴더 목록 가져오기 (Sidebar와 동일한 캐시 데이터 공유)
+    const { data: folders } = useQuery({
+        queryKey: ['folders'],
+        queryFn: fetchAllFolder,
+    });
+
+
 
   // 1. AI 분석을 위한 Mutation
     const aiAnalyzeMutation = useMutation({
@@ -70,33 +79,37 @@ const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => 
       }
     };
 
-    // 폴더 목록 가져오기 (Sidebar와 동일한 캐시 데이터 공유)
-    const { data: folders } = useQuery({
-        queryKey: ['folders'],
-        queryFn: fetchAllFolder,
-    });
-
-
     // 3. 데이터 초기화 (신규/수정 전환 시)
     useEffect(() => {
+      if (!isOpen) return;
+
       if (data) {
+        // [수정 모드]
         setUrl(data.url || '');
         setTitle(data.title || '');
         setThumbnail(data.thumbnailUrl || '');
-        setSelectedFolderId(data.folderId);
+        setSelectedFolderId(data.folderId); // 기존 저장된 폴더 ID
         setSummary(data.aiSummary || '');
         setKeywords(data.keywords || []);
-        lastFetchedUrl.current = data.url || ''; // 수정 모드일 때 초기값 세팅
+        lastFetchedUrl.current = data.url || '';
       } else {
+        // [신규 생성 모드]
         setUrl('');
         lastFetchedUrl.current = '';
         setTitle('');
         setThumbnail('');
-        setSelectedFolderId('default');
         setSummary('');
         setKeywords([]);
+        
+        // ✅ 기본 폴더 로직 적용
+        if (folders) {
+          const defaultFolder = findDefaultFolder(folders);
+          if (defaultFolder) {
+            setSelectedFolderId(defaultFolder.id); // sortOrder 0인 폴더 ID로 초기화
+          }
+        }
       }
-    }, [data, isOpen]);
+    }, [data, isOpen, folders]); // folders를 추가하여 데이터 로드 즉시 반영
 
 
     // 2. AI 생성 버튼 핸들러
@@ -114,25 +127,7 @@ const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => 
       setKeywords(keywords.filter((_, index) => index !== indexToRemove));
     };
 
-
-    // ----------------------
-    // 아카이브 생성 
-    const createMutation = useMutation({
-      mutationFn: createArchive,
-      onSuccess: () => {
-        // 저장 성공 시 대시보드 리스트 무효화 (새로고침)
-        queryClient.invalidateQueries({ queryKey: ['archives'] });
-        queryClient.invalidateQueries({ queryKey: ['folders'] });
-        alert('아카이브가 저장되었습니다.');
-        onClose(); // 패널 닫기
-      },
-      onError: (error) => {
-        console.error('저장 실패:', error);
-        alert('저장에 실패했습니다. 필수 항목을 확인해주세요.');
-      }
-    });
-
-  // 2. 저장 버튼 클릭 핸들러
+    // 2. 저장/수정 버튼 클릭 핸들러
     const handleSave = () => {
       // 유효성 검사
       if (!url || !title) {
@@ -140,25 +135,32 @@ const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => 
         return;
       }
 
-      // 서버 DTO 형식에 맞게 데이터 구성
-      const requestData: ArchiveCreateRequest = {
-        url,
+      // 공통 요청 데이터 구성
+      const requestData = {
         title,
-        thumbnailUrl: thumbnail || null,
         aiSummary: summary || null,
-        // 'all'인 경우 기본 폴더(예: 0 또는 백엔드 정책에 따른 ID)로 처리
-        folderId: selectedFolderId === 'all' ? 0 : Number(selectedFolderId),
+        folderId: Number(selectedFolderId),
         keywords: keywords.length > 0 ? keywords : null,
       };
 
       if (data) {
-        // TODO: 수정 API (PUT) 연결 로직
-        console.log('수정 데이터:', requestData);
+        // ✅ 수정 모드: PATCH 요청
+        updateArchive({id: data.id, request: requestData });
       } else {
-        createMutation.mutate(requestData);
+        // ✅ 생성 모드: POST 요청 (기존 로직)
+        createArchive({
+          ...requestData,
+          url,
+          thumbnailUrl: thumbnail || null,
+        });
       }
+
     };
 
+    const handleDeleteInPanel = async (id:number) => {
+      await deleteArchive(id);
+      onClose(); // 삭제 성공 시 패널 닫기 (커스텀 훅 내부 onSuccess에 넣거나 여기서 처리)
+    };
 
 
     return (
@@ -288,7 +290,7 @@ const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => 
                 <FolderSelect
                     folders={folders} 
                     currentFolderId={selectedFolderId} 
-                    onChange={(newId) => setSelectedFolderId(newId)} 
+                    onChange={(newId) => setSelectedFolderId(Number(newId))}
             />
           )}
           <HelperText>아카이브를 보관할 폴더를 선택하세요</HelperText>
@@ -298,13 +300,15 @@ const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => 
       </PanelContent>
 
       <PanelFooter>
-        <BtnSave 
-          onClick={handleSave} 
-          disabled={createMutation.isPending}
-        >
-          {createMutation.isPending ? '저장 중...' : (data ? '변경사항 저장' : '저장')}
+        <BtnSave onClick={handleSave} disabled={isSaving}>
+          {isSaving ? '저장 중...' : (data ? '변경사항 저장' : '저장')}
         </BtnSave>
-        {data && <BtnDelete>🗑️</BtnDelete>}
+        {data && (
+        <BtnDelete 
+          onClick={()=> handleDeleteInPanel(data.id)} disabled={isDeleting}>
+                  🗑️
+        </BtnDelete>
+        )}
       </PanelFooter>
     </SidePanelContainer>
   );

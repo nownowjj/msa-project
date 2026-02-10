@@ -4,7 +4,7 @@ import type { SingleValue } from 'react-select';
 
 // 1. 타입 정의
 export interface FolderOption {
-  value: number | string;
+  value: number;
   label: string;
   displayLabel: string;
   depth: number;
@@ -12,8 +12,8 @@ export interface FolderOption {
 
 interface FolderSelectProps {
   folders: any[]; // 부모로부터 받은 원본 폴더 데이터
-  currentFolderId?: number | string;
-  onChange: (folderId: number | string) => void;
+  currentFolderId?: number ;
+  onChange: (folderId: number) => void;
 }
 
 // 2. 스타일 정의
@@ -71,7 +71,7 @@ const FolderSelect = ({ folders, currentFolderId, onChange }: FolderSelectProps)
     list.forEach(folder => {
       flat.push({
         value: folder.id,
-        label: folder.name,
+        label: `${folder.name}-${folder.id}`,
         displayLabel: `${'\u00A0'.repeat(depth * 3)} 📁 ${folder.name}`,
         depth: depth
       });

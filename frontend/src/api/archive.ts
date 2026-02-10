@@ -1,4 +1,4 @@
-import type { ArchiveAiAnalyze, ArchiveCreateRequest, ArchiveMetadata, ArchiveResponse } from "../types/archive";
+import type { ArchiveAiAnalyze, ArchiveCreateRequest, ArchiveMetadata, ArchiveResponse, ArchiveUpdateRequest } from "../types/archive";
 import { api } from "./api";
 
 /**
@@ -44,9 +44,31 @@ export const fetchArchiveAiAnalyze = async (url: string):Promise<ArchiveAiAnalyz
 
 /**
  * @param request 
- * @returns 
+ * @returns 아카이브 생성 {생성된 아카이브}
  */
 export const createArchive = async (request: ArchiveCreateRequest) => {
   const { data } = await api.post('/archive', request);
+  return data;
+};
+
+
+/**
+ * @param id 
+ * @param request 
+ * @returns 아카이브 수정
+ */
+export const updateArchive = async (id: number, request: ArchiveUpdateRequest) => {
+  const { data } = await api.patch(`/archive/${id}`, request);
+  return data;
+};
+
+
+/**
+ * 
+ * @param id 
+ * @returns 아카이브 삭제
+ */
+export const deleteArchive = async (id: number) => {
+  const { data } = await api.delete(`/archive/${id}`);
   return data;
 };

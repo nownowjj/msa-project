@@ -5,6 +5,8 @@ import Content from '../components/Layout/Content';
 import { useState } from 'react';
 import SidePanel from '../components/Layout/SidePanel';
 import type { ArchiveResponse } from '../types/archive';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteArchive } from '../api/archive';
 
 
 export interface SelectedFolder {
@@ -33,6 +35,7 @@ const DashBoard = () => {
         setSelectedArchive(null); // 비어있는 상태로 만들기
         setIsPanelOpen(true);
     };
+
 
     return (
         <>

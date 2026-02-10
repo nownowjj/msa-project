@@ -1,16 +1,16 @@
 import dayjs from 'dayjs';
 import styled from 'styled-components';
 import type { ArchiveResponse } from '../../types/archive';
+import { useArchiveMutation } from '../../hooks/useArchiveMutation';
 
 
 interface ArchiveCardProps {
   item: ArchiveResponse;
   onEdit?: (id: number) => void;
   onMove?: (id: number) => void;
-  onDelete?: (id: number) => void;
 }
 
-const ArchiveCard = ({ item, onEdit, onMove, onDelete }: ArchiveCardProps) => {
+const ArchiveCard = ({ item, onEdit, onMove }: ArchiveCardProps) => {
   // 도메인 추출 로직 안전하게 처리
   const getHostname = (url: string) => {
     try {
@@ -19,6 +19,8 @@ const ArchiveCard = ({ item, onEdit, onMove, onDelete }: ArchiveCardProps) => {
       return 'link';
     }
   };
+
+  const { deleteArchive, isDeleting } = useArchiveMutation();
 
   return (
     <Card>
@@ -34,28 +36,37 @@ const ArchiveCard = ({ item, onEdit, onMove, onDelete }: ArchiveCardProps) => {
         <CardType>{getHostname(item.url)}</CardType>
       </CardThumbnail>
 
-      <CardContent onClick={() => onEdit?.(item.id)}>
-        <CardTitle>
-          {item.title || '제목 없음'}
-        </CardTitle>
-        
-        <CardSummary>
-          {item.aiSummary || '요약 정보가 없습니다.'}
-        </CardSummary>
+      <CardContent>
 
-        <CardTags>
-          {item.keywords.map(tag => (
-            <Tag key={tag}>#{tag}</Tag>
-          ))}
-        </CardTags>
+        <CardContentArea onClick={() => onEdit?.(item.id)}>
+          <CardTitle>
+            {item.title || '제목 없음'}
+          </CardTitle>
+          
+          <CardSummary>
+            {item.aiSummary || '요약 정보가 없습니다.'}
+          </CardSummary>
+
+          <CardTags>
+            {item.keywords.map(tag => (
+              <Tag key={tag}>#{tag}</Tag>
+            ))}
+          </CardTags>
+        </CardContentArea>
 
         <CardFooter>
           <CardDate>📅 {dayjs(item.createdAt).format('YYYY.MM.DD')}</CardDate>
           
           <CardActions>
             <ActionBtn title="수정" onClick={() => onEdit?.(item.id)}>✏️</ActionBtn>
-            <ActionBtn title="이동" onClick={() => onMove?.(item.id)}>📁</ActionBtn>
-            <ActionBtn title="삭제" className="delete" onClick={() => onDelete?.(item.id)}>🗑️</ActionBtn>
+            {/* <ActionBtn title="이동" onClick={() => onMove?.(item.id)}>📁</ActionBtn> */}
+            <ActionBtn 
+              title="삭제" 
+              onClick={() => deleteArchive(item.id)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? '...' : '🗑️'}
+            </ActionBtn>
           </CardActions>
         </CardFooter>
       </CardContent>
@@ -136,6 +147,8 @@ const CardContent = styled.div`
   flex-direction: column; /* 세로 방향 정렬 */
   height: calc(100% - 200px); /* 썸네일 제외 영역 꽉 채우기 */
 `;
+
+const CardContentArea =styled.div``
 
 const CardTitle = styled.h3`
   font-size: 17px;

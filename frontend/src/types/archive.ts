@@ -21,9 +21,16 @@ export interface ArchiveAiAnalyze {
 }
 
 export interface ArchiveCreateRequest {
-  url: string;
+    url: string;
     title: string;
     thumbnailUrl: string | null;
+    aiSummary: string | null;
+    folderId: number;
+    keywords: string[] | null;
+}
+
+export interface ArchiveUpdateRequest {
+    title: string;
     aiSummary: string | null;
     folderId: number;
     keywords: string[] | null;

@@ -12,9 +12,10 @@ const Sidebar = ({activeId , onSelect}: SidebarProps) => {
 
   const { data:folders , isLoading} = useQuery({
     queryKey: ['folders'],
-    queryFn: fetchAllFolder,
-    staleTime: 1000 * 60 * 5
+    queryFn: fetchAllFolder
   });
+
+  console.log(folders)
 
   return (
     <SidebarContainer>
@@ -29,14 +30,6 @@ const Sidebar = ({activeId , onSelect}: SidebarProps) => {
           <span className="count">전체보기</span>
         </StaticItem>
 
-        {/* <StaticItem 
-          active={activeId === -1} 
-          onClick={() => setActiveId(-1)}
-          depth={2}
-        >
-          <span className="icon">🌍</span>
-          <span className="text">좋아요 누른 기록</span>
-        </StaticItem> */}
       </Section>
 
       <Section>

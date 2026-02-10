@@ -53,11 +53,6 @@ const Content = ( { activeFolder ,onEditClick }: { activeFolder: SelectedFolder 
                   <ArchiveCard
                     key={item.id} 
                     item={item} 
-                    onDelete={(id) => {
-                      if(confirm('정말 삭제하시겠습니까?')) {
-                        // 삭제 로직 호출
-                      }
-                    }}
                     onEdit={() => onEditClick(item)} // 카드에서 수정 클릭 시 핸들러 호출
                     // onEdit, onMove 등도 필요하면 여기서 핸들링
                   />
