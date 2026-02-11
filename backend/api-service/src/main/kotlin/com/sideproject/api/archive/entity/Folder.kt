@@ -28,7 +28,7 @@ class Folder (
 
     /** 상위 폴더 (루트는 null) */
     @Column(name = "parent_id")
-    val parentId: Long? = null,
+    var parentId: Long? = null,
 
     /** 폴더명 */
     @Column(nullable = false, length = 100)
@@ -61,11 +61,12 @@ class Folder (
 
     fun isActive(): Boolean = useYn == "Y"
 
-    fun softDelete() {
+    fun delete() {
         this.useYn = "N"
     }
 
-    fun rename(newName: String) {
+    fun updateName(newName: String) {
+        if (newName.isBlank()) throw IllegalArgumentException("이름은 비어있을 수 없습니다.")
         this.name = newName
     }
 }

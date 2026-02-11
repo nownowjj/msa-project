@@ -17,3 +17,15 @@ data class FolderCountDto(
     val folder: Folder,
     val archiveCount: Long
 )
+
+/** 폴더 생성 요청 */
+data class FolderCreateRequest(
+    val name: String,
+    val parentId: Long? = null
+)
+
+/** 폴더 수정 요청 (이름 및 위치 이동) */
+data class FolderUpdateRequest(
+    val name: String?,
+    val parentId: Long?
+)

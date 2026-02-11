@@ -111,6 +111,8 @@ class ArchiveService(
         val archive = archiveRepository.findByIdAndUserId(archiveId,userId)
             ?: throw EntityNotFoundException("해당 아카이브가 존재하지 않습니다.")
 
+        //아카이브와 연결된 모든 매핑 정보를 지움.
+        archiveKeywordRepository.deleteByArchiveId(archiveId)
         archive.delete()
 
         return archive.id!!

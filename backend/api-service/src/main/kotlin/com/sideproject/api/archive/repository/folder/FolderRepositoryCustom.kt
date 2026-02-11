@@ -5,4 +5,6 @@ import com.sideproject.api.archive.dto.FolderCountDto
 interface FolderRepositoryCustom {
 
     fun findAllWithArchiveCount(userId: Long): List<FolderCountDto>
+
+    fun findMaxSortOrder(userId: Long, parentId: Long?): Int
 }
