@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import styled from 'styled-components';
 import { fetchAllFolder } from '../api/folder';
+import { GlobalConfirm } from '../components/common/GlobalConfirm';
 import Content from '../components/Layout/Content';
 import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
 import SidePanel from '../components/Layout/SidePanel';
 import { FolderModal } from '../components/Modal/FolderModal';
 import type { ArchiveResponse } from '../types/archive';
+import { GlobalAlert } from '../components/common/GlobalAlert';
 
 
 export interface SelectedFolder {
@@ -68,6 +70,9 @@ const DashBoard = () => {
 
             {folders && <FolderModal folders={folders} />}
             
+            {/* 🌟 전역 컨펌창 배치 (어디서든 호출하면 여기서 뜹니다) */}
+            <GlobalConfirm />
+            <GlobalAlert />
         </>
     );
 };

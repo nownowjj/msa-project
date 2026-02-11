@@ -7,3 +7,13 @@ export interface FolderNavigationResponse {
     sortOrder: number;
     children: FolderNavigationResponse[];
 }
+
+export interface FolderCreateRequest {
+  name: string;
+  parentId: number | null;
+}
+
+export interface FolderUpdateRequest {
+  name?: string;
+  parentId?: number | null;
+}

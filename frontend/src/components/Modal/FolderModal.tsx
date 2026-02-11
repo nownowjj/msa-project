@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { useFolderModalStore } from '../../hooks/useFolderModalStore';
+import { useFolderMutation } from '../../hooks/useFolderMutations';
 import type { FolderNavigationResponse } from '../../types/folder';
 import FolderSelect from '../Folder/FolderSelect';
 
@@ -8,19 +9,53 @@ import FolderSelect from '../Folder/FolderSelect';
 const EMOJI_OPTIONS = ['📁', '📂', '💻', '🎨', '📊', '🎬', '📚', '💡', '🔧', '⚡', '🌟', '🎯', '📝', '🎮', '🏆'];
 
 export const FolderModal = ({ folders }: { folders: FolderNavigationResponse[] }) => {
-    const { isOpen, mode, folderData, closeModal } = useFolderModalStore();
+    const { isOpen, mode, folderData, closeModal ,parentId } = useFolderModalStore();
+    const { createFolder, updateFolder, isSaving } = useFolderMutation(closeModal);
     const [folderName, setFolderName] = useState('');
-
-    // ✅ 최상위 폴더는 null이므로 number | null 타입 지정
     const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
+
+    // 하위 폴더 추가 모드 여부
+    const isAddingSubFolder = mode === 'create' && parentId !== null;
+
+    // 2. FolderSelect에 보여줄 폴더 목록 가공
+    const displayFolders = useMemo(() => {
+        if (isAddingSubFolder) {
+            // ✅ 하위 폴더 추가일 땐, 부모가 될 그 폴더 하나만 목록에 남김
+            // folders 전체에서 parentId와 일치하는 폴더 객체만 찾아서 배열로 만듦
+            const findFolderRecursive = (list: FolderNavigationResponse[]): FolderNavigationResponse | undefined => {
+                for (const f of list) {
+                    if (f.id === parentId) return f;
+                    if (f.children) {
+                        const found = findFolderRecursive(f.children);
+                        if (found) return found;
+                    }
+                }
+            };
+            const targetFolder = findFolderRecursive(folders);
+            return targetFolder ? [targetFolder] : [];
+        }
+        // 일반 생성/수정일 땐 전체 목록 노출
+        return folders;
+    }, [isAddingSubFolder, folders, parentId]);
 
     useEffect(() => {
         if (isOpen) {
-            setFolderName(folderData?.name || '');
-            // ✅ 기존 parentId가 null이면 Root(0 또는 null)로 인식하게 설정
-            setSelectedParentId(folderData?.parentId ?? null);
+            if (mode === 'edit') {
+                setFolderName(folderData?.name || '');
+                setSelectedParentId(folderData?.parentId ?? null);
+            } else {
+                // mode === 'create'
+                setFolderName('');
+                // 🌟 하위 폴더 추가를 통해 들어온 경우 parentId를 초기값으로 설정
+                setSelectedParentId(parentId ?? null); 
+            }
+        }else{
+          // ✅ 모달이 닫힐 때 로컬 상태도 초기화 (이전 잔상이 남지 않도록)
+          setFolderName('');
+          setSelectedParentId(null);
         }
-    }, [isOpen, folderData]);
+    }, [isOpen, mode, folderData, parentId]);
+
 
     if (!isOpen) return null;
 
@@ -34,13 +69,14 @@ export const FolderModal = ({ folders }: { folders: FolderNavigationResponse[] }
         };
 
         if (mode === 'create') {
-            console.log("생성 요청:", requestData);
-            // createFolderMutation.mutate(requestData);
+            createFolder(requestData);
         } else {
-            console.log("수정 요청:", folderData?.id, requestData);
-            // updateFolderMutation.mutate({ id: folderData.id, ...requestData });
+            if (!folderData?.id) return;
+            updateFolder({ 
+                id: folderData.id, 
+                request: requestData 
+            });
         }
-        closeModal();
     };
 
     return (
@@ -65,11 +101,12 @@ export const FolderModal = ({ folders }: { folders: FolderNavigationResponse[] }
                             <Label>상위 폴더</Label>
                             {/* ✅ 공용 FolderSelect 사용 */}
                             <FolderSelect
-                                folders={folders}
-                                // FolderSelect가 내부적으로 0을 Root로 쓴다면 처리
+                                folders={displayFolders}
                                 currentFolderId={selectedParentId ?? 0}
                                 onChange={(newId) => setSelectedParentId(newId === 0 ? null : newId)}
-                                showRootOption={true}
+                                showRootOption={!isAddingSubFolder}
+                                // ✅ 하위 폴더 추가일 떈 변경 불가능하게 막음
+                                isDisabled={isAddingSubFolder}
                                 excludeId={mode === 'edit' ? folderData?.id : undefined}
                             />
                             <HelperText>

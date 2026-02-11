@@ -1,4 +1,4 @@
-import type { FolderNavigationResponse } from "../types/folder";
+import type { FolderCreateRequest, FolderNavigationResponse, FolderUpdateRequest } from "../types/folder";
 import { api } from "./api";
 
 
@@ -20,3 +20,34 @@ export const fetchAllFolder = async ():Promise<FolderNavigationResponse[]> =>{
     const {data} = await api.get<FolderNavigationResponse[]>('/folder');
     return data;
 }
+
+
+/**
+ * @param request 
+ * @returns 폴더 생성 {생성된 폴더 ID}
+ */
+export const createFolder = async (request: FolderCreateRequest) => {
+  const { data } = await api.post<number>('/folder', request);
+  return data;
+};
+
+
+/**
+ * @param id 
+ * @param request 
+ * @returns 폴더 수정 (이름 변경 및 계층 이동)
+ */
+export const updateFolder = async (id: number, request: FolderUpdateRequest) => {
+  const { data } = await api.patch(`/folder/${id}`, request);
+  return data;
+};
+
+
+/**
+ * @param id 
+ * @returns 폴더 삭제 (하위 폴더 및 아카이브 정리)
+ */
+export const deleteFolder = async (id: number) => {
+  const { data } = await api.delete(`/folder/${id}`);
+  return data;
+};

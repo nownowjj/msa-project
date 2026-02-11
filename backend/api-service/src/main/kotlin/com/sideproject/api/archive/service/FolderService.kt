@@ -67,7 +67,7 @@ class FolderService (
         }
 
         // 2. 최대 Depth 제한 (선택 사항: 현재 기획에 따라 0~2 또는 1~3)
-        if (parent != null && parent.depth > 3) { // 0(최상위), 1(하위), 2(최하위) 구조라면
+        if (parent != null && parent.depth > 2) { // 0(최상위), 1(하위), 2(최하위) 구조라면
             throw IllegalStateException("더 이상 하위 폴더를 생성할 수 없습니다.")
         }
 
