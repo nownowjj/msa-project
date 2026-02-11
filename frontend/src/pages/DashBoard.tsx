@@ -1,12 +1,13 @@
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import styled from 'styled-components';
+import { fetchAllFolder } from '../api/folder';
+import Content from '../components/Layout/Content';
 import Header from '../components/Layout/Header';
 import Sidebar from '../components/Layout/Sidebar';
-import Content from '../components/Layout/Content';
-import { useState } from 'react';
 import SidePanel from '../components/Layout/SidePanel';
+import { FolderModal } from '../components/Modal/FolderModal';
 import type { ArchiveResponse } from '../types/archive';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteArchive } from '../api/archive';
 
 
 export interface SelectedFolder {
@@ -36,6 +37,13 @@ const DashBoard = () => {
         setIsPanelOpen(true);
     };
 
+    // 폴더 목록 가져오기 (Sidebar와 동일한 캐시 데이터 공유)
+    const { data: folders } = useQuery({
+        queryKey: ['folders'],
+        queryFn: fetchAllFolder,
+    });
+
+    
 
     return (
         <>
@@ -57,6 +65,9 @@ const DashBoard = () => {
                 data={selectedArchive} 
                 onClose={() => setIsPanelOpen(false)} 
             />
+
+            {folders && <FolderModal folders={folders} />}
+            
         </>
     );
 };

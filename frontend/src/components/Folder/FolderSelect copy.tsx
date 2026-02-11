@@ -1,7 +1,6 @@
 
 import Select from 'react-select';
 import type { SingleValue } from 'react-select';
-import type { FolderNavigationResponse } from '../../types/folder';
 
 // 1. 타입 정의
 export interface FolderOption {
@@ -12,11 +11,9 @@ export interface FolderOption {
 }
 
 interface FolderSelectProps {
-  folders: FolderNavigationResponse[];
-  currentFolderId: number;
+  folders: any[]; // 부모로부터 받은 원본 폴더 데이터
+  currentFolderId?: number ;
   onChange: (folderId: number) => void;
-  showRootOption?: boolean; // 최상위(Root) 선택지 표시 여부
-  excludeId?: number;       // 수정 모드일 때 자신과 하위 폴더 제외
 }
 
 // 2. 스타일 정의
@@ -67,15 +64,11 @@ const customStyles = {
   })
 };
 
-const FolderSelect = ({ folders, currentFolderId, onChange, showRootOption, excludeId }: FolderSelectProps) => {
+const FolderSelect = ({ folders, currentFolderId, onChange }: FolderSelectProps) => {
   // 3. 데이터 가공 로직 (Flatten)
-  const flattenFolders = (list: FolderNavigationResponse[], depth = 0): FolderOption[] => {
+  const flattenFolders = (list: any[], depth = 0): FolderOption[] => {
     let flat: FolderOption[] = [];
-
     list.forEach(folder => {
-      // ✅ excludeId가 있고, 현재 폴더가 그 ID와 같다면 이 가지(Branch) 전체를 스킵
-      if (excludeId && folder.id === excludeId) return;
-
       flat.push({
         value: folder.id,
         label: `${folder.name}-${folder.id}`,
@@ -90,13 +83,11 @@ const FolderSelect = ({ folders, currentFolderId, onChange, showRootOption, excl
   };
 
   const options = [
-    ...(showRootOption ? [{ value: 0, label: '최상위 폴더', displayLabel: '📂 최상위 폴더 (Root)', depth: 0 }] : []),
+    // { value: 'default', label: '기본', displayLabel: '📂 기본', depth: 0 },
     ...flattenFolders(folders)
   ];
 
-  const selectedValue = options.find(opt => opt.value === currentFolderId) 
-                     || (showRootOption ? options[0] : null); 
-                     // currentFolderId가 null(혹은 0)일 때 '최상위' 옵션이 잡히도록 함
+  const selectedValue = options.find(opt => opt.value === currentFolderId) || options[0];
 
   return (
     <Select

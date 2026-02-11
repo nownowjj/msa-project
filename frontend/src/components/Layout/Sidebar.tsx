@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { fetchAllFolder } from '../../api/folder';
 import type { FolderNavigationResponse } from '../../types/folder';
+import { useFolderModalStore } from '../../hooks/useFolderModalStore';
 interface SidebarProps {
   activeId: number | null; // 현재 선택된 폴더 ID (-1은 전체보기)
   onSelect: (id: number, name: string) => void; // 폴더 클릭 시 ID를 변경할 함수
 }
 
 const Sidebar = ({activeId , onSelect}: SidebarProps) => {
-
+  const { openCreateModal} = useFolderModalStore();
   const { data:folders , isLoading} = useQuery({
     queryKey: ['folders'],
     queryFn: fetchAllFolder
@@ -48,7 +49,7 @@ const Sidebar = ({activeId , onSelect}: SidebarProps) => {
         )}
       </Section>
 
-      <NewFolderButton>+ 새 폴더</NewFolderButton>
+      <NewFolderButton onClick={openCreateModal}>+ 새 폴더</NewFolderButton>
     </SidebarContainer>
   );
 };
