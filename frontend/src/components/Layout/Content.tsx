@@ -6,7 +6,8 @@ import ArchiveCard from "../Archive/ArchiveCard";
 import type { ArchiveResponse } from "../../types/archive";
 
 
-const Content = ( { activeFolder ,onEditClick }: { activeFolder: SelectedFolder ,onEditClick: (item: ArchiveResponse) => void }) => {
+const Content = ( { activeFolder ,onEditClick , onAddClick}: 
+  { activeFolder: SelectedFolder ,onEditClick: (item: ArchiveResponse) => void ,onAddClick: () => void }) => {
     
     const {data: archives ,isLoading} =useQuery({
       // key에 ID를 넣어야 ID가 바뀔 때마다 캐시를 관리하고 새로 요청함
@@ -43,7 +44,7 @@ const Content = ( { activeFolder ,onEditClick }: { activeFolder: SelectedFolder 
                         : `'${activeFolder.name}' 폴더에 저장된 링크가 없습니다.`}
                     </EmptyDescription>
 
-                    <AddButton onClick={() => console.log('등록 모달 열기')}>
+                    <AddButton onClick={onAddClick}>
                       + 아카이브 추가하기
                     </AddButton>
                   </EmptyWrapper>

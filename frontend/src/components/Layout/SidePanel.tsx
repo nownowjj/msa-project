@@ -7,8 +7,14 @@ import { useArchiveMutation } from "../../hooks/useArchiveMutation";
 import type { ArchiveResponse } from "../../types/archive";
 import FolderSelect from "../Folder/FolderSelect";
 
+interface SidePanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  data: ArchiveResponse | null; // 수정 시 데이터
+  initialFolderId?: number | null; // ✅ 추가: 새로 만들 때의 초기 폴더 ID
+}
 
-const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => void, data: ArchiveResponse | null }) => {
+const SidePanel = ({ isOpen, onClose, data, initialFolderId }: SidePanelProps) => {
     const {createArchive, updateArchive, deleteArchive, isSaving ,isDeleting } = useArchiveMutation(onClose);
 
     // 1. 자동 입력을 위한 상태 관리
@@ -101,15 +107,19 @@ const SidePanel = ({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => 
         setSummary('');
         setKeywords([]);
         
-        // ✅ 기본 폴더 로직 적용
-        if (folders) {
+        // ✅ 폴더 초기화 로직 보강
+        if (initialFolderId !== undefined && initialFolderId !== null && initialFolderId !== -1) {
+          // 1순위: 현재 보고 있는 폴더가 있을 경우 그 폴더로 지정
+          setSelectedFolderId(initialFolderId);
+        } else if (folders) {
+          // 2순위: 보고 있는 폴더가 없으면(전체보기 등) 기존 기본 폴더 로직 적용
           const defaultFolder = findDefaultFolder(folders);
           if (defaultFolder) {
-            setSelectedFolderId(defaultFolder.id); // sortOrder 0인 폴더 ID로 초기화
+            setSelectedFolderId(defaultFolder.id);
           }
         }
       }
-    }, [data, isOpen, folders]); // folders를 추가하여 데이터 로드 즉시 반영
+    }, [data, isOpen, folders ,initialFolderId]); // folders를 추가하여 데이터 로드 즉시 반영
 
 
     // 2. AI 생성 버튼 핸들러

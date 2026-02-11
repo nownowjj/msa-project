@@ -18,7 +18,7 @@ interface FolderSelectProps {
   onChange: (folderId: number) => void;
   showRootOption?: boolean; // 최상위(Root) 선택지 표시 여부
   excludeId?: number;       // 수정 모드일 때 자신과 하위 폴더 제외
-  isDisabled: boolean;
+  isDisabled?: boolean;
 }
 
 // 2. 스타일 정의

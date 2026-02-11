@@ -4,38 +4,46 @@ import { useFolderModalStore } from '../../hooks/useFolderModalStore';
 import { useFolderMutation } from '../../hooks/useFolderMutations';
 import type { FolderNavigationResponse } from '../../types/folder';
 import FolderSelect from '../Folder/FolderSelect';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAllFolder } from '../../api/folder';
 
 
 const EMOJI_OPTIONS = ['📁', '📂', '💻', '🎨', '📊', '🎬', '📚', '💡', '🔧', '⚡', '🌟', '🎯', '📝', '🎮', '🏆'];
 
-export const FolderModal = ({ folders }: { folders: FolderNavigationResponse[] }) => {
+export const FolderModal = () => {
     const { isOpen, mode, folderData, closeModal ,parentId } = useFolderModalStore();
     const { createFolder, updateFolder, isSaving } = useFolderMutation(closeModal);
+
     const [folderName, setFolderName] = useState('');
     const [selectedParentId, setSelectedParentId] = useState<number | null>(null);
 
     // 하위 폴더 추가 모드 여부
     const isAddingSubFolder = mode === 'create' && parentId !== null;
 
-    // 2. FolderSelect에 보여줄 폴더 목록 가공
+
+    const { data: folders } = useQuery({
+      queryKey: ['folders'],
+      queryFn: fetchAllFolder,
+      enabled: isOpen, // 💡 팁: 모달이 열려있을 때만 데이터를 활성화할 수도 있습니다.
+    });
+
+
+    // 2. 선택 가능한 폴더 목록 계산
     const displayFolders = useMemo(() => {
-        if (isAddingSubFolder) {
-            // ✅ 하위 폴더 추가일 땐, 부모가 될 그 폴더 하나만 목록에 남김
-            // folders 전체에서 parentId와 일치하는 폴더 객체만 찾아서 배열로 만듦
-            const findFolderRecursive = (list: FolderNavigationResponse[]): FolderNavigationResponse | undefined => {
-                for (const f of list) {
-                    if (f.id === parentId) return f;
-                    if (f.children) {
-                        const found = findFolderRecursive(f.children);
-                        if (found) return found;
-                    }
-                }
-            };
-            const targetFolder = findFolderRecursive(folders);
-            return targetFolder ? [targetFolder] : [];
+      if (!folders) return [];
+      if (!isAddingSubFolder) return folders;
+
+      const findFolderRecursive = (list: FolderNavigationResponse[]): FolderNavigationResponse | undefined => {
+        for (const f of list) {
+          if (f.id === parentId) return f;
+          if (f.children) {
+            const found = findFolderRecursive(f.children);
+            if (found) return found;
+          }
         }
-        // 일반 생성/수정일 땐 전체 목록 노출
-        return folders;
+      };
+      const targetFolder = findFolderRecursive(folders);
+      return targetFolder ? [targetFolder] : [];
     }, [isAddingSubFolder, folders, parentId]);
 
     useEffect(() => {
@@ -44,9 +52,7 @@ export const FolderModal = ({ folders }: { folders: FolderNavigationResponse[] }
                 setFolderName(folderData?.name || '');
                 setSelectedParentId(folderData?.parentId ?? null);
             } else {
-                // mode === 'create'
                 setFolderName('');
-                // 🌟 하위 폴더 추가를 통해 들어온 경우 parentId를 초기값으로 설정
                 setSelectedParentId(parentId ?? null); 
             }
         }else{
@@ -55,7 +61,6 @@ export const FolderModal = ({ folders }: { folders: FolderNavigationResponse[] }
           setSelectedParentId(null);
         }
     }, [isOpen, mode, folderData, parentId]);
-
 
     if (!isOpen) return null;
 

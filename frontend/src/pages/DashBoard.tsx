@@ -39,11 +39,6 @@ const DashBoard = () => {
         setIsPanelOpen(true);
     };
 
-    // 폴더 목록 가져오기 (Sidebar와 동일한 캐시 데이터 공유)
-    const { data: folders } = useQuery({
-        queryKey: ['folders'],
-        queryFn: fetchAllFolder,
-    });
 
     
 
@@ -58,6 +53,7 @@ const DashBoard = () => {
                 <Content
                     activeFolder={activeFolder}
                     onEditClick={handleEdit}
+                    onAddClick={handleAddNew}
                 />
             </MainContainer>
 
@@ -66,9 +62,10 @@ const DashBoard = () => {
                 isOpen={isPanelOpen} 
                 data={selectedArchive} 
                 onClose={() => setIsPanelOpen(false)} 
+                initialFolderId={activeFolder.id}
             />
 
-            {folders && <FolderModal folders={folders} />}
+            <FolderModal/>
             
             {/* 🌟 전역 컨펌창 배치 (어디서든 호출하면 여기서 뜹니다) */}
             <GlobalConfirm />
