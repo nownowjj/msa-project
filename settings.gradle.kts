@@ -7,8 +7,6 @@ include(
     "backend:common",
     "backend:auth-service",
     "backend:api-service"
-//    "backend:gateway-service"
 )
-//include("common")
-//include("auth-service")
-//include("api-service")
+
+include("backend:monolith-launcher")

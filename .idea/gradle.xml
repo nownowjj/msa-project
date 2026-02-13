@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/backend/api-service" />
             <option value="$PROJECT_DIR$/backend/auth-service" />
             <option value="$PROJECT_DIR$/backend/common" />
+            <option value="$PROJECT_DIR$/backend/monolith-launcher" />
           </set>
         </option>
       </GradleProjectSettings>

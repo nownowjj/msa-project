@@ -1,0 +1,69 @@
+# backend/monolith-launcher/src/main/resources/application-deploy.yml
+
+spring:
+  config:
+    activate:
+      on-profile: deploy
+
+  # 1. 데이터베이스 설정 (Supabase)
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 900000
+
+  # 2. Redis 설정
+  data:
+    redis:
+      host: ${REDIS_HOST:redis-16574.c340.ap-northeast-2-1.ec2.cloud.redislabs.com}
+      port: ${REDIS_PORT:16574}
+      password: ${REDIS_PASSWORD}
+
+  # 3. JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false # 운영 환경에서는 false 권장
+    properties:
+      hibernate:
+        format_sql: true
+
+  # 4. 빈 중복 정의 허용 (MSA 통합 시 필수)
+  main:
+    allow-bean-definition-overriding: true
+
+# 5. 서버 포트 (배포 플랫폼에서 자동 할당)
+server:
+  port: ${PORT:8080}
+
+# 6. 서비스 간 통신 (자기 자신 호출)
+service:
+  auth:
+    base-url: http://localhost:${server.port}
+
+# 7. 보안 및 외부 API 설정 (민감 정보)
+jwt:
+  secret: ${JWT_SECRET}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
+  redirect-uri: ${GOOGLE_REDIRECT_URI}
+
+youtube:
+  api-key: ${YOUTUBE_API_KEY}
+  base-url: https://www.googleapis.com/youtube/v3 # 예시 주소
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+
+logging:
+  level:
+    root: INFO
