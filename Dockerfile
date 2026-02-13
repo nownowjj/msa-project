@@ -14,4 +14,4 @@ WORKDIR /app
 COPY --from=build /backend/monolith-launcher/build/libs/*.jar app.jar
 
 # 실행
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=deploy", "app.jar"]
+ENTRYPOINT ["java", "-Xmx400M", "-Xms400M", "-jar", "-Dspring.profiles.active=deploy", "app.jar"]
