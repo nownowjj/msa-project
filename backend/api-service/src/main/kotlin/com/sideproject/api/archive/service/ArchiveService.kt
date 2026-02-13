@@ -115,6 +115,9 @@ class ArchiveService(
         archiveKeywordRepository.deleteByArchiveId(archiveId)
         archive.delete()
 
+        // ✅ 트랜잭션 종료 전 강제로 DB에 반영 시도
+        archiveRepository.saveAndFlush(archive)
+
         return archive.id!!
     }
 

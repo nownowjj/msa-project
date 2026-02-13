@@ -1,16 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import styled, { keyframes } from "styled-components";
 import { fetchArchivesAll, fetchArchivesByFolder } from "../../api/archive";
-import type { SelectedFolder } from "../../pages/DashBoard";
-import ArchiveCard from "../Archive/ArchiveCard";
+import { useFolderStore } from "../../hooks/useFolderStore";
 import type { ArchiveResponse } from "../../types/archive";
+import ArchiveCard from "../Archive/ArchiveCard";
 
 
-const Content = ( { activeFolder ,onEditClick , onAddClick}: 
-  { activeFolder: SelectedFolder ,onEditClick: (item: ArchiveResponse) => void ,onAddClick: () => void }) => {
+const Content = ( {onEditClick , onAddClick}: 
+  { onEditClick: (item: ArchiveResponse) => void ,onAddClick: () => void }) => {
     
+    const { activeFolder } = useFolderStore();
+
     const {data: archives ,isLoading} =useQuery({
-      // key에 ID를 넣어야 ID가 바뀔 때마다 캐시를 관리하고 새로 요청함
       queryKey: ['archives', activeFolder.id],
       queryFn: () => activeFolder.id === -1 ? 
                         fetchArchivesAll():

@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import styled from 'styled-components';
 import type { ArchiveResponse } from '../../types/archive';
 import { useArchiveMutation } from '../../hooks/useArchiveMutation';
+import { useConfirmStore } from '../../hooks/useConfirmStore';
 
 
 interface ArchiveCardProps {
@@ -21,6 +22,21 @@ const ArchiveCard = ({ item, onEdit, onMove }: ArchiveCardProps) => {
   };
 
   const { deleteArchive, isDeleting } = useArchiveMutation();
+  const confirm = useConfirmStore((state) => state.confirm);
+
+  // 폴더 삭제
+  const handleDelete = async (e: React.MouseEvent ,item: ArchiveResponse) => {
+    e.stopPropagation();
+    const isConfirmed = await confirm({
+      message: `해당 아카이브를 정말 삭제할까요?`,
+      confirmText: "삭제",
+      cancelText: "취소"
+    });
+
+    if (isConfirmed) {
+      deleteArchive(item.id);
+    } 
+  };
 
   return (
     <Card>
@@ -32,7 +48,6 @@ const ArchiveCard = ({ item, onEdit, onMove }: ArchiveCardProps) => {
             : '#f1f3f5' 
         }}
       >
-        {!item.thumbnailUrl && <span className="no-img">No Image</span>}
         <CardType>{getHostname(item.url)}</CardType>
       </CardThumbnail>
 
@@ -62,7 +77,7 @@ const ArchiveCard = ({ item, onEdit, onMove }: ArchiveCardProps) => {
             {/* <ActionBtn title="이동" onClick={() => onMove?.(item.id)}>📁</ActionBtn> */}
             <ActionBtn 
               title="삭제" 
-              onClick={() => deleteArchive(item.id)}
+              onClick={(e) => handleDelete(e, item)}
               disabled={isDeleting}
             >
               {isDeleting ? '...' : '🗑️'}

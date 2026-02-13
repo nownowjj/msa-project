@@ -1,4 +1,5 @@
 import { useGoogleLogin } from '@react-oauth/google';
+import { OAuthButton } from '../pages/Login';
 
 const YoutubeConnectButton = ({ onSuccess }: { onSuccess: (token: string) => void }) => {
   const login = useGoogleLogin({
@@ -15,9 +16,10 @@ const YoutubeConnectButton = ({ onSuccess }: { onSuccess: (token: string) => voi
   });
 
   return (
-    <button onClick={() => login()}>
-      유튜브 권한 및 로그인
-    </button>
+    <OAuthButton className="google" onClick={() => login()}>
+      <span className="icon">🔍</span>
+      <span>Google 계정으로 계속하기</span>
+    </OAuthButton>
   );
 };
 
