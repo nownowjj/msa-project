@@ -11,6 +11,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class CorsConfig(
     @Value("\${service.auth.base-url}") private val baseUrl: String
 ) {
+    init { println(baseUrl) }
+
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
