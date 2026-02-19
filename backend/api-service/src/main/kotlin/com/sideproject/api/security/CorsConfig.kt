@@ -18,7 +18,7 @@ class CorsConfig(
         val config = CorsConfiguration()
         config.allowedOrigins = listOf(
             "http://localhost:5173", // 로컬
-            baseUrl, // oracle Server
+            "https://spring-archive-api.duckdns.org", // oracle Server
             "https://msa-project-steel.vercel.app" // front
         )
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH")
