@@ -1,8 +1,9 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "/api",
-  withCredentials: true, // 모든 요청에 쿠키를 포함 (설정 유지)
+  // VITE_API_BASE_URL이 있으면 그 값을 쓰고, 없으면 로컬 프록시용 "/api" 사용
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  withCredentials: true,
 });
 
 // 1. 요청 인터셉터 (기존 로직 유지)
