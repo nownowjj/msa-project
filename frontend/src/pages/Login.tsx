@@ -151,8 +151,8 @@ const LoginPage: React.FC<LoginPageProps> = ({
             계정이 없으신가요? <FooterLink href="#">회원가입</FooterLink>
           </FooterText>
           <FooterText style={{ marginTop: '8px' }}>
-            <FooterLink href="#">이용약관</FooterLink> · 
-            <FooterLink href="#">개인정보처리방침</FooterLink>
+            <FooterLink href="/terms">이용약관</FooterLink> · 
+            <FooterLink href="/privacy">개인정보처리방침</FooterLink>
           </FooterText>
         </Footer>
       </LoginContainer>
