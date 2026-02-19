@@ -1,19 +1,21 @@
 package com.sideproject.api.security
 
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
+@Order(1)
 class SecurityConfig(
     private val jwtTokenFilter: JwtTokenFilter
 ) {
+
+    init { println("SecurityConfig loaded!") }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain{
@@ -22,8 +24,6 @@ class SecurityConfig(
             .cors { } // CORS 설정은 별도 Bean에서
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
-
-            // 인증 정책
             .authorizeHttpRequests {
                 it
                     .requestMatchers(
@@ -34,10 +34,7 @@ class SecurityConfig(
                     .anyRequest().authenticated()
             }
             // UsernamePasswordAuthenticationToken 필터 앞에 우리가 만든 JwtTokenFilter 추가
-            http.addFilterBefore(
-                jwtTokenFilter,
-                UsernamePasswordAuthenticationFilter::class.java
-            )
+            .addFilterBefore(jwtTokenFilter,UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
