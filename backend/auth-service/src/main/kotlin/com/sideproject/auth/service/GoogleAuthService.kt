@@ -26,7 +26,7 @@ class GoogleAuthService(
 
     @Value("\${google.client-id}") private val clientId: String,
     @Value("\${google.client-secret}") private val clientSecret: String,
-    @Value("\${google.redirect-uri}") private val redirectUri: String // 프론트엔드와 일치해야 함
+//    @Value("\${google.redirect-uri}") private val redirectUri: String // 프론트엔드와 일치해야 함
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
