@@ -17,8 +17,9 @@ class CorsConfig(
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
         config.allowedOrigins = listOf(
-            "http://localhost:5173",
-            baseUrl // oracle Server
+            "http://localhost:5173", // 로컬
+            baseUrl, // oracle Server
+            "https://msa-project-steel.vercel.app" // front
         )
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH")
         config.allowedHeaders = listOf("*")
