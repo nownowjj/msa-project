@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const api = axios.create({
   // VITE_API_BASE_URL이 있으면 그 값을 쓰고, 없으면 로컬 프록시용 "/api" 사용
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
 
