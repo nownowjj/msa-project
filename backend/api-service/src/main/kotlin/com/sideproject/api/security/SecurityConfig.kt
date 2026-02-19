@@ -9,8 +9,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
-@EnableWebSecurity(debug = true)
-@Order(1)
+@EnableWebSecurity
 class SecurityConfig(
     private val jwtTokenFilter: JwtTokenFilter
 ) {

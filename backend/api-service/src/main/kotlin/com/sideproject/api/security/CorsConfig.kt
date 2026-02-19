@@ -12,7 +12,10 @@ class CorsConfig {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration()
-        config.allowedOrigins = listOf("http://localhost:5173")
+        config.allowedOrigins = listOf(
+            "http://localhost:5173",
+            "https://msa-project-steel.vercel.app"
+        )
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH")
         config.allowedHeaders = listOf("*")
         config.allowCredentials = true
