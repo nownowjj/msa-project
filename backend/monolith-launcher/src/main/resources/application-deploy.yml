@@ -45,7 +45,7 @@ server:
 # 6. 서비스 간 통신 (자기 자신 호출)
 service:
   auth:
-    base-url: http://localhost:${server.port}
+    base-url: ${AUTH_BASE_URL}
 
 # 7. 보안 및 외부 API 설정 (민감 정보)
 jwt:
