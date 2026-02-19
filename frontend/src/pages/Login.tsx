@@ -79,7 +79,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
         <LogoSection>
           <Logo>
             <LogoIcon>A</LogoIcon>
-            <LogoText>나만의 저장소</LogoText>
+            <LogoText>msa-project</LogoText>
           </Logo>
           <WelcomeText>시작하기</WelcomeText>
           <Subtitle>소셜 계정으로 간편하게 로그인하세요</Subtitle>
@@ -271,7 +271,7 @@ const LogoIcon = styled.div`
   font-size: 24px;
 `;
 
-const LogoText = styled.span`
+const LogoText = styled.h1`
   font-size: 28px;
   font-weight: 800;
   color: #0F172A;
