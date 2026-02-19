@@ -4,12 +4,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.cloud.openfeign.EnableFeignClients
 
-@EnableFeignClients(basePackages = ["com.project"]) // Feign 스캔 범위 지정
+@EnableFeignClients(basePackages = ["com.sideproject"]) // 👈 수정
 @SpringBootApplication(
     scanBasePackages = [
-        "com.project.common",
-        "com.project.auth",
-        "com.project.api"
+        "com.sideproject.common",
+        "com.sideproject.auth",
+        "com.sideproject.api"
     ]
 )
 class MonolithApplication

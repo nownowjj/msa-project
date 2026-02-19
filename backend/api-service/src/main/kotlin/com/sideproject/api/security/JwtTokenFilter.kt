@@ -66,37 +66,6 @@ class JwtTokenFilter(
         } else null
     }
 
-//    private fun validateToken(token: String): Boolean {
-//        return try {
-//            val claims = getClaims(token)
-//            !claims.expiration.before(java.util.Date())
-//        } catch (e: ExpiredJwtException) {
-//            // 만료된 경우 상위로 던짐
-//            logger.error("에이!@!")
-//            throw e
-//        } catch (e: Exception) {
-//            logger.error("Token validation error: ${e.message}")
-//            throw e
-//        }
-//    }
-
-//    private fun getEmailFromToken(token: String): String {
-//        // .subject 대신 .getSubject() 사용 가능
-//        return getClaims(token).subject
-//    }
-
-//    private fun getClaims(token: String): Claims {
-//        // 보안 키 생성
-//        val key: SecretKey = Keys.hmacShaKeyFor(secretKey.toByteArray(StandardCharsets.UTF_8))
-//
-//        // 0.11.5 버전의 표준 parser 설정 방식
-//        return Jwts.parserBuilder()
-//            .setSigningKey(key)
-//            .build()
-//            .parseClaimsJws(token)
-//            .body
-//    }
-
     // JSON 응답을 직접 생성하는 헬퍼 메서드
     private fun sendErrorResponse(response: HttpServletResponse, errorCode: String, message: String) {
         response.status = HttpServletResponse.SC_UNAUTHORIZED // 401
