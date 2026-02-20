@@ -49,18 +49,27 @@ const Content = ( {onEditClick , onAddClick}: { onEditClick: (item: ArchiveRespo
 
     // 중첩된 페이지 구조를 하나의 배열로 통합
     const allArchives = data?.pages.flatMap((page) => page.content) || [];
-
+    const totalElements = data?.pages[0]?.page.totalElements ?? 0;
     return (
         <MainContent>
             <ContentHeader>
                 <ContentTitle>
-                  {/* {searchQuery ? `🔍 '${searchQuery}' 검색 결과` : activeFolder.name} */}
-                  {activeFolder.name}
-                  </ContentTitle>
-                <ViewOptions>
+                  {searchQuery ? (
+                        <>
+                            🔍 '{searchQuery}' 검색 결과
+                            <TotalCount>{totalElements}건</TotalCount>
+                        </>
+                    ) : (
+                        <>
+                            {activeFolder.name}
+                            <TotalCount>{totalElements}</TotalCount>
+                        </>
+                    )}
+                </ContentTitle>
+                {/* <ViewOptions>
                 <ViewBtn active>그리드</ViewBtn>
                 <ViewBtn>리스트</ViewBtn>
-                </ViewOptions>
+                </ViewOptions> */}
             </ContentHeader>
 
             <CardsGrid>
@@ -140,6 +149,19 @@ const ContentTitle = styled.h1`
   font-size: 28px;
   font-weight: 700;
   color: #111827;
+`;
+
+const TotalCount = styled.span`
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827; // 약간 흐리게 처리해서 제목과 구분
+  
+  &::before {
+    content: "(";
+  }
+  &::after {
+    content: ")";
+  }
 `;
 
 const ViewOptions = styled.div`
