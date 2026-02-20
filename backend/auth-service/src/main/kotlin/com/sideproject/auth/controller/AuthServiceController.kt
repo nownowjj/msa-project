@@ -1,10 +1,10 @@
 package com.sideproject.auth.controller
 
 import com.sideproject.auth.dto.LoginRequest
-import com.sideproject.auth.dto.LoginResponse
 import com.sideproject.auth.jwt.JwtUtil
 import com.sideproject.auth.service.AuthService
 import com.sideproject.common.auth.AuthVerifyResponse
+import com.sideproject.common.dto.LoginResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -43,11 +43,11 @@ class AuthServiceController(
         return ResponseEntity.ok(response)
     }
 
-    @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
-        val (userId, roles) =
-            authService.authenticate(request.email, request.password)
-        val token = jwtUtil.generateToken(userId, roles)
-        return ResponseEntity.ok(LoginResponse(token))
-    }
+//    @PostMapping("/login")
+//    fun login(@RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
+//        val (userId, roles) =
+//            authService.authenticate(request.email, request.password)
+//        val token = jwtUtil.generateToken(userId, roles)
+//        return ResponseEntity.ok(LoginResponse(token))
+//    }
 }

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled, { css, keyframes } from "styled-components";
 import { useConfirmStore } from "../../hooks/useConfirmStore";
 import { useAlertStore } from "../../hooks/useAlertStore";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,7 +11,8 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const navigate = useNavigate();
   const confirm = useConfirmStore((state) => state.confirm);
   const { showAlert } = useAlertStore();
-
+  const queryClient = useQueryClient();
+  
   // ✅ 외부 클릭 감지 로직
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,6 +40,7 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
       });
 
       if (isConfirmed) {
+        queryClient.clear();
         localStorage.removeItem('token');
         await showAlert('로그아웃 되었습니다.');
 

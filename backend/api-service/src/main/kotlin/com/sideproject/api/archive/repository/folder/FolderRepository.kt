@@ -29,4 +29,7 @@ interface FolderRepository: JpaRepository<Folder, Long>, FolderRepositoryCustom 
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM Folder f WHERE f.id IN :ids")
     fun deleteAllByIdIn(ids: List<Long>)
+
+    // 특정 유저의 최상위(parentId is null) 폴더 중 이름이 "기본"인 것 찾기
+    fun existsByUserIdAndParentIdIsNullAndName(userId: Long, name: String): Boolean
 }

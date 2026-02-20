@@ -9,9 +9,15 @@ const Sidebar = () => {
   const { openCreateModal } = useFolderModalStore();
   const { activeFolder, setActiveFolder } = useFolderStore();
 
-  const { data: folders, isLoading } = useQuery({
-    queryKey: ['folders'],
-    queryFn: fetchAllFolder
+  const { data: folders ,isLoading } = useQuery({
+      queryKey: ['folders'],
+      queryFn: fetchAllFolder,
+      // 데이터가 비어있다면(회원가입 직후) 최대 3번까지 재시도
+      retry: (failureCount, error) => {
+          if (folders?.length === 0 && failureCount < 2) return true;
+          return false;
+      },
+      retryDelay: 500, // 0.5초 대기 후 재시도
   });
 
 

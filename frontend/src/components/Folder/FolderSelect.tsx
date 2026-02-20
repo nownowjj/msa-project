@@ -94,7 +94,7 @@ const FolderSelect = ({ folders, currentFolderId, onChange, showRootOption, excl
 
       flat.push({
         value: folder.id,
-        label: `${folder.name}-${folder.id}`,
+        label: `${folder.name}`,
         displayLabel: `${'\u00A0'.repeat(depth * 3)} 📁 ${folder.name}`,
         depth: depth,
         isDisabled: depth >= 3

@@ -7,9 +7,11 @@ import com.sideproject.api.archive.entity.Folder
 import com.sideproject.api.archive.repository.archive.ArchiveRepository
 import com.sideproject.api.archive.repository.archiveKeyword.ArchiveKeywordRepository
 import com.sideproject.api.archive.repository.folder.FolderRepository
-import jakarta.transaction.Transactional
+
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class FolderService (
@@ -17,12 +19,18 @@ class FolderService (
     private val archiveKeywordRepository: ArchiveKeywordRepository,
     private val archiveRepository: ArchiveRepository
 ){
-    private val logger = LoggerFactory.getLogger(FolderService::class.java)
+    private val log = LoggerFactory.getLogger(FolderService::class.java)
 
     @Transactional
     fun getFolders(userId: Long): List<FolderTreeResponse> {
         // 1. DB 조회 (평면 구조)
-        val folderDtos = folderRepository.findAllWithArchiveCount(userId)
+        var folderDtos = folderRepository.findAllWithArchiveCount(userId)
+
+        // [보정 로직 추가] 만약 조회 결과가 없다면 기본 폴더 생성 후 다시 조회
+        if (folderDtos.isEmpty()) {
+            ensureDefaultFolderExists(userId) // 동일 트랜잭션 내에서 생성
+            folderDtos = folderRepository.findAllWithArchiveCount(userId) // 재생성 후 다시 조회
+        }
 
         // 2. Response DTO로 변환 및 Map에 저장 (빠른 조회를 위해)
         val allFolders = folderDtos.map { dto ->
@@ -185,6 +193,44 @@ class FolderService (
 
             // (3) 폴더 본체들 제거 (모든 폴더 ID를 한꺼번에 삭제) (물리적 삭제하자)
             folderRepository.deleteAllByIdIn(allFolderIds)
+        }
+    }
+
+    /**
+     * 1. 회원가입 시 호출용 (독립 트랜잭션)
+     * 폴더 생성 실패가 회원가입 전체의 롤백을 유발하지 않도록 REQUIRES_NEW 사용
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun createDefaultFolderForJoin(userId: Long) {
+        log.info("회원가입에 따른 기본 폴더 생성 시작 - userId: $userId")
+        internalCreateDefaultFolder(userId)
+    }
+
+    /**
+     * 2. 조회 시 Self-healing용 (기존 트랜잭션 참여)
+     * 조회 트랜잭션 내에서 즉시 생성하고 결과를 바로 반환해야 하므로 REQUIRED(기본값) 사용
+     */
+    @Transactional
+    fun ensureDefaultFolderExists(userId: Long) {
+        log.info("조회 시 폴더 누락 확인, 보정 로직 실행 - userId: $userId")
+        internalCreateDefaultFolder(userId)
+    }
+
+    private fun internalCreateDefaultFolder(userId: Long) {
+
+        // 중복 생성 방지를 위한 체크 (Idempotency)
+        val isAlreadyExists = folderRepository.existsByUserIdAndParentIdIsNullAndName(userId, "기본")
+
+        if (!isAlreadyExists) {
+            val defaultFolder = Folder(
+                name = "기본",
+                userId = userId,
+                parentId = null,
+                depth = 0,
+                sortOrder = 0
+            )
+            folderRepository.save(defaultFolder)
+            log.info("기본 폴더 생성 완료 - userId: $userId")
         }
     }
 }
