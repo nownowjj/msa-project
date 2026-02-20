@@ -4,10 +4,12 @@ import { fetchAllFolder } from '../../api/folder';
 import { useFolderModalStore } from '../../hooks/useFolderModalStore';
 import { useFolderStore } from '../../hooks/useFolderStore';
 import RecursiveFolderItem from '../Folder/RecursiveFolderItem';
+import { useSearchStore } from '../../hooks/useSearchStore';
 
 const Sidebar = () => {
   const { openCreateModal } = useFolderModalStore();
   const { activeFolder, setActiveFolder } = useFolderStore();
+  const { clearSearch } = useSearchStore();
 
   const { data: folders ,isLoading } = useQuery({
       queryKey: ['folders'],
@@ -27,7 +29,10 @@ const Sidebar = () => {
         <SectionTitle>탐색</SectionTitle>
         <StaticItem
           active={activeFolder.id === -1}
-          onClick={() => setActiveFolder(-1, "전체보기")}
+          onClick={() => {
+            clearSearch();
+            setActiveFolder(-1, "전체보기")}
+          }
           depth={2}
         >
           <span className="icon">🌍</span>

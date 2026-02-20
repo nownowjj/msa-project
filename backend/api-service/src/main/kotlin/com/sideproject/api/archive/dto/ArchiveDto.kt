@@ -46,5 +46,19 @@ data class ArchiveResponse(
                 createdAt = archive.createdAt
             )
         }
+        // ✅ 2. 검색 기능(수동 매핑)에서 사용할 새로운 메서드 (추가)
+        fun from(archive: Archive, keywords: List<String>): ArchiveResponse {
+            return ArchiveResponse(
+                id = archive.id,
+                userId = archive.userId,
+                folderId = archive.folderId,
+                url = archive.url,
+                title = archive.title ?: "제목 없음",
+                thumbnailUrl = archive.thumbnailUrl,
+                aiSummary = archive.aiSummary,
+                keywords = keywords, // 외부에서 주입받은 키워드 사용
+                createdAt = archive.createdAt
+            )
+        }
     }
 }

@@ -4,6 +4,8 @@ import styled, { css, keyframes } from "styled-components";
 import { useConfirmStore } from "../../hooks/useConfirmStore";
 import { useAlertStore } from "../../hooks/useAlertStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSearchStore } from "../../hooks/useSearchStore";
+import { useFolderStore } from "../../hooks/useFolderStore";
 
 const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,7 +14,7 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const confirm = useConfirmStore((state) => state.confirm);
   const { showAlert } = useAlertStore();
   const queryClient = useQueryClient();
-  
+  const { resetActiveFolder } = useFolderStore();
   // ✅ 외부 클릭 감지 로직
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,7 +48,17 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
 
         navigate('/login', { replace: true });
       } 
-      
+    };
+
+
+    const [tempInput, setTempInput] = useState('');
+    const { setSearchQuery } = useSearchStore();
+
+    const handleSearch = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        resetActiveFolder();
+        setSearchQuery(tempInput);
+      }
     };
 
   return (
@@ -59,7 +71,12 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
 
         <SearchContainer>
           <SearchIcon>🔍</SearchIcon>
-          <SearchBar type="text" placeholder="검색어, 태그, URL로 검색..." />
+          <SearchBar 
+            value={tempInput}
+            onChange={(e) => setTempInput(e.target.value)}
+            onKeyDown={handleSearch}
+            placeholder="검색어, #키워드, URL로 검색..." 
+          />
         </SearchContainer>
       </HeaderLeft>
       <HeaderActions ref={menuRef}>

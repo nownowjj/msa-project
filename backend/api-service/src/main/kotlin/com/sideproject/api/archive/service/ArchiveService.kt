@@ -12,6 +12,8 @@ import com.sideproject.api.archive.repository.keyword.KeywordRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -28,18 +30,44 @@ class ArchiveService(
     private val logger = LoggerFactory.getLogger(ArchiveService::class.java)
 
     @Transactional(readOnly = true)
-    // 사용자 전체 조회
-    fun getAllArchives(userId: Long): List<ArchiveResponse> {
-        val archives = archiveRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
-        return archives.map { ArchiveResponse.from(it) }
+    fun getArchives(userId: Long, folderId: Long?, pageable: Pageable): Page<ArchiveResponse> {
+        // 1. 아카이브 목록 페이징 조회 (폴더 ID가 null이면 전체 조회)
+        val archivePage = archiveRepository.findArchivesPaging(userId, folderId, pageable)
+
+        if (archivePage.isEmpty) return Page.empty()
+
+        // 2. 현재 페이지의 Archive ID들만 추출하여 키워드 한꺼번에 로드 (N+1 방지)
+        val archiveIds = archivePage.content.map { it.id }
+
+        // 2. 키워드 한꺼번에 조회 (fetch join 사용 버전)
+        val allArchiveKeywords = archiveKeywordRepository.findAllByArchiveIdIn(archiveIds)
+
+        // 3. Archive ID별로 키워드(String) 리스트 그룹화 (메모리에서 조립)
+        val keywordMap = allArchiveKeywords.groupBy(
+            { it.archive.id },
+            { it.keyword.keyword }
+        )
+
+        // 4. DTO 변환 시 맵에서 꺼내서 주입
+        return archivePage.map { archive ->
+            val keywordsForThisArchive = keywordMap[archive.id] ?: emptyList()
+            ArchiveResponse.from(archive, keywordsForThisArchive) // 오버로딩된 from 사용
+        }
     }
 
-    @Transactional(readOnly = true)
-    // 사용자 폴더별 조회
-    fun getFolderArchive(userId: Long , folderId :Long): List<ArchiveResponse> {
-        val archives = archiveRepository.findAllByUserIdAndFolderIdOrderByCreatedAtDesc(userId , folderId)
-        return archives.map { ArchiveResponse.from(it) }
-    }
+//    @Transactional(readOnly = true)
+//    // 사용자 전체 조회
+//    fun getAllArchives(userId: Long): List<ArchiveResponse> {
+//        val archives = archiveRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
+//        return archives.map { ArchiveResponse.from(it) }
+//    }
+//
+//    @Transactional(readOnly = true)
+//    // 사용자 폴더별 조회
+//    fun getFolderArchive(userId: Long , folderId :Long): List<ArchiveResponse> {
+//        val archives = archiveRepository.findAllByUserIdAndFolderIdOrderByCreatedAtDesc(userId , folderId)
+//        return archives.map { ArchiveResponse.from(it) }
+//    }
 
     // Archive 생성
     @Transactional
@@ -168,4 +196,29 @@ class ArchiveService(
      */
     private fun normalize(input: String): String =  input.trim().lowercase().replace("\\s+".toRegex(), "")
 
+
+    @Transactional(readOnly = true)
+    fun search(userId: Long, query: String, pageable: Pageable): Page<ArchiveResponse> {
+        if (query.isBlank()) return Page.empty()
+
+        // 1. 아카이브 페이징 조회
+        val archivePage = archiveRepository.searchArchives(userId, query, pageable)
+        if (archivePage.isEmpty) return Page.empty()
+
+        val archiveIds = archivePage.content.map { it.id }
+
+        // 2. 키워드들을 한꺼번에 조회 (Join Fetch 활용)
+        val allArchiveKeywords = archiveKeywordRepository.findAllByArchiveIdIn(archiveIds)
+
+        // 3. [핵심] Archive ID를 키로 하는 키워드 그룹 맵 생성
+        // 예: { 1: ["일본", "여행"], 2: ["맛집"] }
+        val keywordMap = allArchiveKeywords
+            .groupBy({ it.archive.id }, { it.keyword.keyword })
+
+        // 4. DTO 변환 시 맵에서 데이터를 꺼내서 전달
+        return archivePage.map { archive ->
+            val keywordsForThisArchive = keywordMap[archive.id] ?: emptyList()
+            ArchiveResponse.from(archive, keywordsForThisArchive) // Response DTO 수정 필요
+        }
+    }
 }

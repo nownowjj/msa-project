@@ -1,20 +1,40 @@
 import type { ArchiveAiAnalyze, ArchiveCreateRequest, ArchiveMetadata, ArchiveResponse, ArchiveUpdateRequest } from "../types/archive";
+import type { PageResponse } from "../types/Page";
 import { api } from "./api";
 
 /**
  * @param folderId 
  * @returns 폴더 아카이브 조회
  */
-export const fetchArchivesByFolder = async (folderId: number):Promise<ArchiveResponse[]> =>{
-    const {data} = await api.get<ArchiveResponse[]>(`/archive/${folderId}`);
+export const fetchArchivesByFolder = async (folderId: number, page: number = 0): Promise<PageResponse<ArchiveResponse>> => {
+    const { data } = await api.get<PageResponse<ArchiveResponse>>(`/archive/${folderId}`, {
+        params: { page, size: 20 } // 페이지당 20개씩 호출
+    });
     return data;
 }
 
 /**
  * 전체 아카이브 조회
  */
-export const fetchArchivesAll = async ():Promise<ArchiveResponse[]> =>{
-    const {data} = await api.get<ArchiveResponse[]>(`/archive`);
+export const fetchArchivesAll = async (page: number = 0): Promise<PageResponse<ArchiveResponse>> => {
+    const { data } = await api.get<PageResponse<ArchiveResponse>>(`/archive`, {
+        params: { page, size: 20 }
+    });
+    return data;
+}
+
+/**
+ * 아카이브 검색 조회
+ */
+export const fetchSearchArchives = async (searchQuery: string, page: number = 0): Promise<PageResponse<ArchiveResponse>> => {
+    const { data } = await api.get<PageResponse<ArchiveResponse>>(`/archive/search`, {
+        // params 객체에 넣으면 자동으로 ?query=검색어&page=0&size=20 형태로 만들어줍니다.
+        params: { 
+            query: searchQuery, 
+            page, 
+            size: 20 
+        }
+    });
     return data;
 }
 

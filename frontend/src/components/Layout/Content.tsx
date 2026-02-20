@@ -1,28 +1,62 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useInView } from 'react-intersection-observer'; // 1. Hook 임포트
 import styled, { keyframes } from "styled-components";
-import { fetchArchivesAll, fetchArchivesByFolder } from "../../api/archive";
+import { fetchArchivesAll, fetchArchivesByFolder, fetchSearchArchives } from "../../api/archive";
 import { useFolderStore } from "../../hooks/useFolderStore";
+import { useSearchStore } from "../../hooks/useSearchStore";
 import type { ArchiveResponse } from "../../types/archive";
 import ArchiveCard from "../Archive/ArchiveCard";
 
-
-const Content = ( {onEditClick , onAddClick}: 
-  { onEditClick: (item: ArchiveResponse) => void ,onAddClick: () => void }) => {
-    
+const Content = ( {onEditClick , onAddClick}: { onEditClick: (item: ArchiveResponse) => void ,onAddClick: () => void }) => {
     const { activeFolder } = useFolderStore();
+    const { searchQuery } = useSearchStore();
+    // 2. 감시자(ref)와 감지 상태(inView) 가져오기
+    const { ref, inView } = useInView({
+        threshold: 0, // 요소가 조금이라도 보이면 true
+        // rootMargin: '400px', // 바닥에 닿기 400px 전부터 미리 감지해서 다음 페이지 호출
+    });
 
-    const {data: archives ,isLoading} =useQuery({
-      queryKey: ['archives', activeFolder.id],
-      queryFn: () => activeFolder.id === -1 ? 
-                        fetchArchivesAll():
-                        fetchArchivesByFolder(activeFolder.id),
-      enabled: activeFolder.id !== null, // ID가 있을 때만 쿼리 수행
-    })
+    
+    const {data,isLoading,fetchNextPage,hasNextPage,isFetchingNextPage} = useInfiniteQuery({
+        // 쿼리키에 폴더 ID와 검색어를 포함하여 변경 시마다 초기화
+        queryKey: ['archives', activeFolder.id ,searchQuery],
+        queryFn: ({ pageParam = 0 }) => {
+            // 1. 검색어가 있으면 검색 API 호출
+            if (searchQuery) {
+                return fetchSearchArchives(searchQuery, pageParam);
+            }
+            // 2. 검색어가 없으면 폴더별 혹은 전체 조회 API 호출
+            return activeFolder.id === -1
+                ? fetchArchivesAll(pageParam)
+                : fetchArchivesByFolder(activeFolder.id, pageParam);
+        },
+        initialPageParam: 0,
+        getNextPageParam: (lastPage) => {
+            // via-dto 규격: 현재 페이지 번호 + 1이 전체 페이지보다 작으면 다음 페이지 번호 반환
+            const { number, totalPages } = lastPage.page;
+            return number + 1 < totalPages ? number + 1 : undefined;
+        },
+        enabled: activeFolder.id !== null,
+    });
+
+    // 3. 사용자가 바닥에 도달했는지(inView) 감시하여 다음 페이지 호출
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    // 중첩된 페이지 구조를 하나의 배열로 통합
+    const allArchives = data?.pages.flatMap((page) => page.content) || [];
 
     return (
         <MainContent>
             <ContentHeader>
-                <ContentTitle>{activeFolder.name}</ContentTitle>
+                <ContentTitle>
+                  {/* {searchQuery ? `🔍 '${searchQuery}' 검색 결과` : activeFolder.name} */}
+                  {activeFolder.name}
+                  </ContentTitle>
                 <ViewOptions>
                 <ViewBtn active>그리드</ViewBtn>
                 <ViewBtn>리스트</ViewBtn>
@@ -35,31 +69,55 @@ const Content = ( {onEditClick , onAddClick}:
 
 
                 {/* 2. 데이터가 없을 때 (Empty State) */}
-                {!isLoading && archives?.length === 0 && (
-                  <EmptyWrapper>
-                    <EmptyIcon>📁</EmptyIcon>
-                    <EmptyTitle>아카이브가 비어 있습니다</EmptyTitle>
-                    <EmptyDescription>
-                      {activeFolder.id === -1 
-                        ? "아직 저장된 링크가 없네요. 첫 아카이브를 등록해보세요!" 
-                        : `'${activeFolder.name}' 폴더에 저장된 링크가 없습니다.`}
-                    </EmptyDescription>
-
-                    <AddButton onClick={onAddClick}>
-                      + 아카이브 추가하기
-                    </AddButton>
-                  </EmptyWrapper>
+                {!isLoading && allArchives.length === 0 && (
+                    <EmptyWrapper>
+                        <EmptyIcon>{searchQuery ? '🔎' : '📁'}</EmptyIcon>
+                        <EmptyTitle>
+                            {searchQuery ? '검색 결과가 없습니다' : '아카이브가 비어 있습니다'}
+                        </EmptyTitle>
+                        <EmptyDescription>
+                            {searchQuery 
+                                ? '다른 키워드로 검색해보시겠어요?' 
+                                : activeFolder.id === -1 
+                                    ? "첫 아카이브를 등록해보세요!" 
+                                    : `'${activeFolder.name}' 폴더가 비어있습니다.`}
+                        </EmptyDescription>
+                        {!searchQuery && (
+                            <AddButton onClick={onAddClick}>+ 아카이브 추가하기</AddButton>
+                        )}
+                    </EmptyWrapper>
                 )}
 
-                {!isLoading && archives?.map((item) => (
-                  <ArchiveCard
-                    key={item.id} 
-                    item={item} 
-                    onEdit={() => onEditClick(item)} // 카드에서 수정 클릭 시 핸들러 호출
-                    // onEdit, onMove 등도 필요하면 여기서 핸들링
-                  />
+                {/* 3. 아카이브 카드 렌더링 */}
+                {!isLoading && allArchives.map((item) => (
+                    <ArchiveCard
+                        key={item.id}
+                        item={item}
+                        onEdit={() => onEditClick(item)}
+                    />
                 ))}
+
+                {/* 4. 추가 데이터 로드 버튼 (무한 스크롤 대신 우선 버튼으로 구현) */}
+                {/* {hasNextPage && (
+                        <button 
+                            onClick={() => fetchNextPage()} 
+                            disabled={isFetchingNextPage}
+                        >
+                            {isFetchingNextPage ? '불러오는 중...' : '더보기'}
+                        </button>
+                )} */}
             </CardsGrid>
+
+
+            {/* 수정한 부분: isLoading이 아닐 때만 감시용 요소를 렌더링합니다 */}
+            {!isLoading && hasNextPage && (
+                <div ref={ref} style={{ height: '50px', margin: '20px 0' }}>
+                    {isFetchingNextPage && <LoadingText>추가 데이터를 불러오는 중...</LoadingText>}
+                </div>
+            )}
+            
+            {/* {!isLoading && allArchives.length === 0 && <EmptyState />} */}
+
         </MainContent>
     );
 };

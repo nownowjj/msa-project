@@ -5,6 +5,7 @@ import com.sideproject.api.archive.entity.ArchiveKeyword
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 interface ArchiveKeywordRepository: JpaRepository<ArchiveKeyword, Long> {
 
@@ -15,4 +16,11 @@ interface ArchiveKeywordRepository: JpaRepository<ArchiveKeyword, Long> {
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM ArchiveKeyword ak WHERE ak.archive.id IN (SELECT a.id FROM Archive a WHERE a.folderId IN :folderIds)")
     fun deleteByFolderIds(folderIds: List<Long>)
+
+    @Query("""
+        SELECT ak FROM ArchiveKeyword ak 
+        JOIN FETCH ak.keyword 
+        WHERE ak.archive.id IN :archiveIds
+    """)
+    fun findAllByArchiveIdIn(@Param("archiveIds") archiveIds: List<Long>): List<ArchiveKeyword>
 }

@@ -5,6 +5,7 @@ import { useFolderMutation } from "../../hooks/useFolderMutations";
 import { useConfirmStore } from "../../hooks/useConfirmStore";
 import type { FolderNavigationResponse } from "../../types/folder";
 import styled, { css, keyframes } from "styled-components";
+import { useSearchStore } from "../../hooks/useSearchStore";
 
 const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -16,7 +17,7 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
   const { deleteFolder } = useFolderMutation(); // 1. mutation 훅에서 함수 가져오기
   const { activeFolder, setActiveFolder, resetActiveFolder } = useFolderStore();
   const { openEditModal , openAddSubFolderModal} = useFolderModalStore();  // 폴더 수정 Modal 
-
+  const { clearSearch } = useSearchStore();
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,7 +72,8 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
         active={activeFolder.id === folder.id}
         depth={folder.depth}
         onClick={() => {
-            setActiveFolder(folder.id, folder.name)
+            clearSearch();
+            setActiveFolder(folder.id, folder.name);
           }
         }
       >

@@ -8,6 +8,9 @@ import com.sideproject.api.archive.service.GeminiService
 import com.sideproject.api.archive.service.ScraperService
 import com.sideproject.auth.dto.AuthUser
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -31,18 +35,20 @@ class ArchiveController(
     /** 본인 전체 아카이브 목록 조회 */
     @GetMapping
     fun getAllArchives(
-        @AuthenticationPrincipal user: AuthUser
-    ): List<ArchiveResponse> {
-        return archiveService.getAllArchives(user.id)
+        @AuthenticationPrincipal user: AuthUser,
+        pageable: Pageable
+    ): Page<ArchiveResponse> {
+        return archiveService.getArchives(user.id ,null,pageable)
     }
 
     /** 본인 폴더 아카이브  조회 */
     @GetMapping("/{folderId}")
     fun getFolderArchive(
         @PathVariable folderId : Long,
-        @AuthenticationPrincipal user: AuthUser
-    ): List<ArchiveResponse> {
-        return archiveService.getFolderArchive(user.id, folderId)
+        @AuthenticationPrincipal user: AuthUser,
+        pageable: Pageable
+    ): Page<ArchiveResponse> {
+        return archiveService.getArchives(user.id, folderId ,pageable)
     }
 
 
@@ -73,4 +79,14 @@ class ArchiveController(
         return archiveService.deleteArchive(id, user.id)
     }
 
+
+    @GetMapping("/search")
+    fun searchArchives(
+        @AuthenticationPrincipal user: AuthUser, // 유저 인증 정보
+        @RequestParam("query") query: String, // @RequestParam으로 변경
+        pageable: Pageable
+    ): ResponseEntity<Page<ArchiveResponse>> {
+        val result = archiveService.search(user.id, query, pageable)
+        return ResponseEntity.ok(result)
+    }
 }
