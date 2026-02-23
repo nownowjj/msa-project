@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchMyPlaylists } from '../api/youtube';
-import PlaylistCard from '../components/PlaylistCard';
+import PlaylistCard from '../components/Youtube/PlaylistCard';
 
 const MyPlayListPage = () => {
   // React Query의 훅을 호출 (async/await 로직이 이 안에 숨어 있음)
@@ -9,6 +9,8 @@ const MyPlayListPage = () => {
     queryFn: fetchMyPlaylists,
     staleTime: 1000 * 60 * 5
   });
+
+  console.log(playlists)
 
 
   // 3. 정상 데이터 렌더링

@@ -1,5 +1,5 @@
 import { useGoogleLogin } from '@react-oauth/google';
-import { OAuthButton } from '../pages/Login';
+import { OAuthButton } from '../../pages/Login';
 
 const YoutubeConnectButton = ({ onSuccess }: { onSuccess: (token: string) => void }) => {
   const login = useGoogleLogin({

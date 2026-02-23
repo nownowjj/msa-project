@@ -92,7 +92,7 @@ class ArchiveRepositoryCustomImpl(
                 // 검색 조건: 제목 OR URL OR 키워드
                 archive.title.containsIgnoreCase(query)
                     .or(archive.url.containsIgnoreCase(query))
-                    .or(keyword.keyword.containsIgnoreCase(query))
+                    .or(keyword.normalizedKeyword.containsIgnoreCase(query))
             )
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())

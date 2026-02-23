@@ -15,7 +15,8 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const { showAlert } = useAlertStore();
   const queryClient = useQueryClient();
   const { resetActiveFolder } = useFolderStore();
-  // ✅ 외부 클릭 감지 로직
+
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // 클릭된 요소가 menuRef(드롭다운 포함 영역) 안에 없으면 닫기
@@ -33,33 +34,42 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
     };
   }, [isMenuOpen]);
 
-    // ✅ 로그아웃 핸들러
-    const handleLogout = async () => {      
-      const isConfirmed = await confirm({
-        message: `정말 로그아웃 하시겠습니까?`,
-        confirmText: "확인",
-        cancelText: "취소"
-      });
 
-      if (isConfirmed) {
-        queryClient.clear();
-        localStorage.removeItem('token');
-        await showAlert('로그아웃 되었습니다.');
+  // ✅ 로그아웃 핸들러
+  const handleLogout = async () => {
+    const isConfirmed = await confirm({
+      message: `정말 로그아웃 하시겠습니까?`,
+      confirmText: "확인",
+      cancelText: "취소"
+    });
 
-        navigate('/login', { replace: true });
-      } 
-    };
+    if (isConfirmed) {
+      queryClient.clear();
+      localStorage.removeItem('token');
+      await showAlert('로그아웃 되었습니다.');
+
+      navigate('/login', { replace: true });
+    }
+  };
 
 
-    const [tempInput, setTempInput] = useState('');
-    const { setSearchQuery } = useSearchStore();
+  const [tempInput, setTempInput] = useState('');
+  const { setSearchQuery , clearSearch} = useSearchStore();
 
-    const handleSearch = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        resetActiveFolder();
-        setSearchQuery(tempInput);
+  const handleSearch = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      resetActiveFolder();
+      // 검색어 전처리 (양끝 공백 제거 및 모든 공백 제거) -> 예: "Spring Boot " -> "springboot"
+      const processedQuery = tempInput.trim().replace(/\s+/g, '').toLowerCase();
+
+      if (processedQuery) {
+        setSearchQuery(processedQuery);
+      } else {
+        // 검색어가 비어있을 경우 검색 초기화 처리
+        clearSearch();
       }
-    };
+    }
+  };
 
   return (
     <HeaderContainer>
@@ -71,11 +81,11 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
 
         <SearchContainer>
           <SearchIcon>🔍</SearchIcon>
-          <SearchBar 
+          <SearchBar
             value={tempInput}
             onChange={(e) => setTempInput(e.target.value)}
             onKeyDown={handleSearch}
-            placeholder="검색어, #키워드, URL로 검색..." 
+            placeholder="검색어, #키워드, URL로 검색..."
           />
         </SearchContainer>
       </HeaderLeft>
@@ -84,14 +94,14 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
           <span>+</span>
           <span>새 링크 추가</span>
         </PrimaryButton>
-        <UserAvatar onClick={()=> setIsMenuOpen(!isMenuOpen)}>U</UserAvatar>
+        <UserAvatar onClick={() => setIsMenuOpen(!isMenuOpen)}>U</UserAvatar>
 
         <DropdownMenu isOpen={isMenuOpen}>
-              <MenuItem variant="danger" onClick={handleLogout}>
-                <MenuIcon>🗑️</MenuIcon>
-                <span>로그아웃</span>
-              </MenuItem>
-          </DropdownMenu>
+          <MenuItem variant="danger" onClick={handleLogout}>
+            <MenuIcon>🗑️</MenuIcon>
+            <span>로그아웃</span>
+          </MenuItem>
+        </DropdownMenu>
       </HeaderActions>
     </HeaderContainer>
   );

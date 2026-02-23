@@ -1,15 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; // 개발 도구 (선택 사항)
+import { BrowserRouter } from 'react-router-dom';
 
-import Login from './pages/Login';
-import MyPage from './pages/MyPage';
-import MyPlayListPage from './pages/MyPlayListPage'; // 아까 만든 페이지
-import PlaylistDetailPage from './pages/PlaylistDetailPage';
-import DashBoard from './pages/DashBoard';
 import './App.css';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
+import AppRouter from './components/Router/AppRouter';
 
 // 1. QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
@@ -27,29 +21,10 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    // 2. QueryClientProvider로 앱 전체를 감싸기
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          {/* 기본 경로 설정: 로그인으로 리다이렉트하거나 메인 페이지 지정 */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          
-          <Route path="/login" element={<Login />} />
-          <Route path="/me" element={<MyPage />} />
-          
-          {/* 재생목록 페이지 경로 추가 */}
-          <Route path="/playlists" element={<MyPlayListPage />} />
-          <Route path="/playlists/:playlistId" element={<PlaylistDetailPage />} />
-
-          {/* 대시보드 */}
-          <Route path="/board" element={<DashBoard />} />
-
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-        </Routes>
+        <AppRouter />
       </BrowserRouter>
-      
-      {/* 개발 중에 데이터 상태를 확인하기 위한 도구 (배포 시엔 자동 제외됨) */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );

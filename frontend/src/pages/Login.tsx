@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { api } from '../api/api';
-import YoutubeConnectButton from '../components/YoutubeConnectButton';
+import YoutubeConnectButton from '../components/Youtube/YoutubeConnectButton';
 
 interface LoginPageProps {
   onGoogleLogin?: () => void;

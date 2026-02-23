@@ -1,5 +1,5 @@
 import React from 'react';
-import type { YoutubePlaylistDto } from '../types/youtube';
+import type { YoutubePlaylistDto } from '../../types/youtube';
 import { useNavigate } from 'react-router-dom';
 
 // Props 타입 정의

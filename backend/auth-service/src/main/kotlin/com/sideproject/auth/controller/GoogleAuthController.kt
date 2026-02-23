@@ -27,6 +27,7 @@ class GoogleAuthController(
     fun getToken(
         @RequestParam("email") email: String
     ): TokenInfoResponse {
+        logger.info("email : ${email}")
         return googleAuthService.getOrRefreshAccessToken(email)
     }
 

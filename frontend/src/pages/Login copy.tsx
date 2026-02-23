@@ -1,7 +1,7 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import React from 'react';
 import styled from 'styled-components';
-import YoutubeConnectButton from '../components/YoutubeConnectButton';
+import YoutubeConnectButton from '../components/Youtube/YoutubeConnectButton';
 import { api } from '../api/api';
 import { useNavigate } from 'react-router-dom';
 

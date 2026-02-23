@@ -1,5 +1,5 @@
 import React from 'react';
-import type { YoutubePlaylistItemDto } from '../types/youtube';
+import type { YoutubePlaylistItemDto } from '../../types/youtube';
 
 
 interface PlaylistItemRowProps {

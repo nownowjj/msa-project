@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { fetchMyPlaylistsItem } from '../api/youtube';
-import PlaylistItemComponent from '../components/PlaylistItemComponent';
+import PlaylistItemComponent from '../components/Youtube/PlaylistItemComponent';
 import { useEffect, useState } from 'react';
 import ReactPlayer from 'react-player'
 
