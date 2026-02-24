@@ -20,6 +20,9 @@
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
+# 타임존 설정 (Ubuntu 기반 이미지용)
+ENV TZ=Asia/Seoul
+
 # GitHub Actions에서 빌드된 JAR 파일을 이 위치로 복사합니다.
 # 경로: backend/monolith-launcher/build/libs/ 내의 jar 파일
 COPY backend/monolith-launcher/build/libs/*.jar app.jar
@@ -27,4 +30,4 @@ COPY backend/monolith-launcher/build/libs/*.jar app.jar
 # 실행 옵션
 # -Xmx: 오라클 서버 메모리가 스왑 포함 5GB이므로,
 # 기존 400M에서 1G~2G 정도로 늘려도 아주 넉넉합니다!
-ENTRYPOINT ["java", "-Xmx1G", "-Xms1G", "-jar", "-Dspring.profiles.active=deploy", "app.jar"]
+ENTRYPOINT ["java", "-Xmx1G", "-Xms1G", "-Duser.timezone=Asia/Seoul", "-jar", "-Dspring.profiles.active=deploy", "app.jar"]

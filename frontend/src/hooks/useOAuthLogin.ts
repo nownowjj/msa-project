@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useRef } from 'react'; // useRef 사용
+import { api } from '../api/api';
 
 export const useOAuthLogin = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export const useOAuthLogin = () => {
     isProcessing.current = true;
 
     try {
-      const response = await axios.post(`/api/auth/login/${provider.toUpperCase()}`, { code });
+      const response = await api.post(`/api/auth/login/${provider.toUpperCase()}`, { code });
       const { accessToken } = response.data;
       localStorage.setItem('token', accessToken);
 

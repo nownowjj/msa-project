@@ -59,6 +59,11 @@ google:
   client-secret: ${GOOGLE_CLIENT_SECRET}
   redirect-uri: ${GOOGLE_REDIRECT_URI}
 
+kakao:
+  client-id: ${KAKAO_CLIENT_ID}
+  client-secret: ${KAKAO_CLIENT_SECRET}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+
 youtube:
   api-key: ${YOUTUBE_API_KEY}
   base-url: https://www.googleapis.com/youtube/v3 # 예시 주소
