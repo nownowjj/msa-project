@@ -19,7 +19,8 @@ class CorsConfig(
         config.allowedOrigins = listOf(
             "http://localhost:5173", // 로컬
             "https://spring-archive-api.duckdns.org", // oracle Server
-            "https://msa-project-steel.vercel.app" // front
+            "https://msa-project-steel.vercel.app",// front
+            "https://link-mint.vercel.app" // front
         )
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH")
         config.allowedHeaders = listOf("*")

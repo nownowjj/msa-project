@@ -6,6 +6,7 @@ import { useAlertStore } from "../../hooks/useAlertStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchStore } from "../../hooks/useSearchStore";
 import { useFolderStore } from "../../hooks/useFolderStore";
+import AppIcon from "../common/LinkMintLogo";
 
 const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,8 +76,8 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
     <HeaderContainer>
       <HeaderLeft>
         <Logo>
-          <LogoIcon>A</LogoIcon>
-          <span>나만의 저장소</span>
+          <AppIcon size={32} />
+          <span>Link Mint</span>
         </Logo>
 
         <SearchContainer>

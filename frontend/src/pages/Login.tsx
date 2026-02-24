@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { api } from '../api/api';
 import YoutubeConnectButton from '../components/Youtube/YoutubeConnectButton';
+import AppIcon from '../components/common/LinkMintLogo';
 
 interface LoginPageProps {
   onGoogleLogin?: () => void;
@@ -95,8 +96,8 @@ const LoginPage: React.FC<LoginPageProps> = ({
         {/* Logo & Header */}
         <LogoSection>
           <Logo>
-            <LogoIcon>A</LogoIcon>
-            <LogoText>msa-project</LogoText>
+            <AppIcon size={48} />
+            <LogoText>Link Mint</LogoText>
           </Logo>
           {/* <WelcomeText>시작하기</WelcomeText> */}
           <Subtitle>    

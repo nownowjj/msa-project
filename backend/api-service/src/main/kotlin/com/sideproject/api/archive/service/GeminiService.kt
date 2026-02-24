@@ -24,21 +24,25 @@ class GeminiService(
      * 캐시 확인 -> 복구(필요시) -> AI 요청(Private 호출) -> 결과 반환
      */
     fun analyzeContent(url: String, userId: Long): GeminiAiResponse {
+        val aiCacheKey = "ai:summary:${url.hashCode()}" // AI 결과 전용 공유 캐시 키
         val userSessionKey = "temp:metadata:$userId"
+
+        // [추가] 1. AI 요약 결과가 이미 공유 캐시에 있는지 확인
+        val cachedAiResult = redisTemplate.opsForValue().get(aiCacheKey) as? GeminiAiResponse
+        if (cachedAiResult != null) return cachedAiResult
 
         // 1. 캐시 확인 및 복구 (Self-healing)
         val cachedData = (redisTemplate.opsForValue().get(userSessionKey) as? TempMetadataCache)
             ?: recoverMetadata(url, userId)
 
-        val content = cachedData.content
-            ?: return GeminiAiResponse("AI 요약에 실패 하였습니다.", null)
+        val content = cachedData.content ?: return GeminiAiResponse("AI 요약에 실패 하였습니다.", null)
 
         // 2. Private AI 요청 메서드 호출
         return try {
             val aiResult = callGeminiApi(content)
 
-            // 3. 최종 등록을 위해 캐시에 AI 결과 업데이트 (선택 사항)
-//            updateCacheWithAiResult(userSessionKey, cachedData, aiResult)
+            // [추가] 4. AI 결과를 공유 캐시에 저장 (예: 24시간 동안 유지하여 비용 절감)
+            redisTemplate.opsForValue().set(aiCacheKey, aiResult, Duration.ofDays(1))
 
             GeminiAiResponse(aiResult.summary, aiResult.keywords)
         } catch (e: Exception) {
