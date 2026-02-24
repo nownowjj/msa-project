@@ -1,5 +1,7 @@
 package com.sideproject.auth.entity
 
+import com.sideproject.auth.service.AuthProvider
+import com.sideproject.auth.service.SocialUserInfo
 import com.sideproject.common.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -63,8 +65,27 @@ class User(
             this.googleRefreshToken = refreshToken
         }
     }
+
+    /**
+     * 소셜 정보를 통합하여 업데이트하는 공통 메서드
+     */
+    fun updateSocialInfo(
+        socialUserInfo: SocialUserInfo, expiresAt: LocalDateTime? = null
+    ) {
+        // 1. 공통 정보 업데이트
+        this.name = socialUserInfo.name
+        this.picture = socialUserInfo.picture
+
+        // 2. 구글 공급자인 경우에만 전용 필드 업데이트
+        if (socialUserInfo.provider == AuthProvider.GOOGLE) {
+            this.googleAccessToken = socialUserInfo.accessToken
+            this.googleTokenExpiresAt = expiresAt
+
+            if (!socialUserInfo.refreshToken.isNullOrBlank()) {
+                this.googleRefreshToken = socialUserInfo.refreshToken
+            }
+        }
+        // 카카오 등 타 소셜은 구글 관련 필드를 건드리지 않음 (이미 null이거나 기존 값 유지)
+    }
 }
 
-enum class AuthProvider {
-    GOOGLE
-}

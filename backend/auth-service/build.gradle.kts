@@ -30,6 +30,8 @@ dependencies {
 
     implementation("org.postgresql:postgresql:42.7.3")
     implementation(kotlin("stdlib-jdk8"))
+
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 }
 
 tasks.withType<KotlinCompile> {

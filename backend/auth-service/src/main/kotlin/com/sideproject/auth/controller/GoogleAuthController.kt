@@ -18,8 +18,6 @@ class GoogleAuthController(
     fun googleLoginWithCode(
         @RequestBody request: GoogleLoginRequestCode
     ): LoginResponse {
-        logger.info("request : ${request}")
-        logger.debug("request : ${request}")
         return googleAuthService.googleLoginWithCode(request.code)
     }
 

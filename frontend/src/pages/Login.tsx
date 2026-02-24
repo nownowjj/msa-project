@@ -1,90 +1,32 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { api } from '../api/api';
 import YoutubeConnectButton from '../components/Youtube/YoutubeConnectButton';
+import { GlobalAlert } from '../components/common/GlobalAlert';
 import AppIcon from '../components/common/LinkMintLogo';
+import { LoadingOverlay } from '../components/common/LoadingOverlay';
+import KakaoLoginButton from '../components/oauth/KakaoLoginButton';
+import { useAlertStore } from '../hooks/useAlertStore';
+import { useOAuthLogin } from '../hooks/useOAuthLogin';
 
 interface LoginPageProps {
-  onGoogleLogin?: () => void;
-  onGithubLogin?: () => void;
-  onKakaoLogin?: () => void;
-  onNaverLogin?: () => void;
-  onEmailLogin?: (email: string, password: string) => void;
 }
 
-type ViewMode = 'oauth' | 'email';
+const LoginPage: React.FC<LoginPageProps> = ({ }) => {
+  const { showAlert } = useAlertStore();
+  const { login: oAuthLogin } = useOAuthLogin();
+  // 로딩 상태 관리
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-const LoginPage: React.FC<LoginPageProps> = ({
-  onGoogleLogin,
-  onGithubLogin,
-  onKakaoLogin,
-  onNaverLogin,
-  onEmailLogin,
-}) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('oauth');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const emailInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (viewMode === 'email') {
-      setTimeout(() => {
-        emailInputRef.current?.focus();
-      }, 100);
-    }
-  }, [viewMode]);
-
-
-  const navigate = useNavigate();
-
-  const handleGoogleLogin = () => {
-    onGoogleLogin?.();
-    // window.location.href = '/auth/google';
-  };
-
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onEmailLogin?.(email, password);
-  };
-
-  const handleGithubLogin = () => {
-    onGithubLogin?.();
-    // window.location.href = '/auth/github';
-  };
-
-  const handleKakaoLogin = () => {
-    onKakaoLogin?.();
-    // window.location.href = '/auth/kakao';
-  };
-
-  const handleNaverLogin = () => {
-    onNaverLogin?.();
-    // window.location.href = '/auth/naver';
-  };
-
-
-  const useGoogleLoginSuccess= async (code: String)=>{
+  const handleGoogleLogin = async (code: string) => {
+    setIsLoggingIn(true); // 오버레이 띄우기
     try {
-      // 1. API 호출
-      const res = await api.post('/auth/google', { code });
-
-      // 2. 스토리지에 토큰 저장
-      localStorage.setItem('token', res.data.accessToken);
-
-      // 3. 페이지 이동 및 히스토리 교체 (가장 중요)
-      // replace: true를 설정하면 현재 페이지(login)가 히스토리 스택에서 삭제됩니다.
-      navigate('/board', { replace: true });
-
-      // 성공 알림 (이동 후에 띄우거나 이동 직전에 띄움)
-      console.log('Google 로그인 성공');
+      await oAuthLogin('GOOGLE', code);
     } catch (error) {
-        console.error('로그인 중 에러 발생:', error);
-        alert('로그인에 실패했습니다.');
-      }
+      console.error("구글 로그인 에러:", error);
+      setIsLoggingIn(false); // 실패 시 오버레이 제거하여 다시 버튼 누를 수 있게 함
     }
-  
+  };
 
   return (
     <PageContainer>
@@ -92,6 +34,9 @@ const LoginPage: React.FC<LoginPageProps> = ({
       <BackgroundShape className="shape-2" />
       <BackgroundShape className="shape-3" />
 
+      {/* 로딩 중일 때만 오버레이 렌더링 */}
+      {isLoggingIn && <LoadingOverlay message="구글 계정으로 로그인 중..." />}
+      <GlobalAlert />
       <LoginContainer>
         {/* Logo & Header */}
         <LogoSection>
@@ -99,133 +44,34 @@ const LoginPage: React.FC<LoginPageProps> = ({
             <AppIcon size={48} />
             <LogoText>Link Mint</LogoText>
           </Logo>
-          {/* <WelcomeText>시작하기</WelcomeText> */}
-          <Subtitle>    
-            {viewMode === 'oauth' 
-              ? '소셜 계정으로 간편하게 로그인하세요' 
-              : '계정 정보를 입력해주세요'}
-          </Subtitle>
+          <Subtitle>소셜 계정으로 간편하게 로그인하세요</Subtitle>
         </LogoSection>
 
         {/* OAuth View */}
-        {viewMode === 'oauth' && (
-          <OAuthView>
-            <OAuthButtons>
-              <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-                <YoutubeConnectButton
-                  onSuccess={(code) => {
-                    useGoogleLoginSuccess(code);
-                  }}
-                />
-              </GoogleOAuthProvider>
+        <OAuthView>
+          <OAuthButtons>
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+              <YoutubeConnectButton
+                onSuccess={(code) => {
+                  handleGoogleLogin(code)
+                }}
+              />
+            </GoogleOAuthProvider>
 
-              <OAuthButton className="github" onClick={handleGithubLogin}>
-                <span>⚫</span>
-                <span>GitHub 계정으로 계속하기</span>
-              </OAuthButton>
+            <KakaoLoginButton onSuccess={() => console.log('카카오 리다이렉트 시작')} />
 
-              <OAuthButton className="kakao" onClick={handleKakaoLogin}>
-                <span>💬</span>
-                <span>카카오 계정으로 계속하기</span>
-              </OAuthButton>
+            <OAuthButton className="github" onClick={()=>{showAlert('준비중입니다');}}>
+              <span>⚫</span>
+              <span>GitHub 계정으로 계속하기</span>
+            </OAuthButton>
 
-              <OAuthButton className="naver" onClick={handleNaverLogin}>
-                <span style={{ fontWeight: 800 }}>N</span>
-                <span>네이버 계정으로 계속하기</span>
-              </OAuthButton>
-            </OAuthButtons>
+            <OAuthButton className="naver" onClick={()=>{showAlert('준비중입니다');}}>
+              <span style={{ fontWeight: 800 }}>N</span>
+              <span>네이버 계정으로 계속하기</span>
+            </OAuthButton>
+          </OAuthButtons>
 
-            {/* <Divider>
-              <DividerLine />
-              <DividerText>또는</DividerText>
-              <DividerLine />
-            </Divider> */}
-
-            {/* <EmailButton onClick={() => setViewMode('email')}>
-              <span>📧</span>
-              <span>이메일로 로그인</span>
-            </EmailButton> */}
-
-            {/* <Features>
-              <FeatureItem>
-                <span>🔒</span>
-                <span>안전한 로그인</span>
-              </FeatureItem>
-              <FeatureItem>
-                <span>⚡</span>
-                <span>빠른 시작</span>
-              </FeatureItem>
-              <FeatureItem>
-                <span>🌐</span>
-                <span>모든 기기 동기화</span>
-              </FeatureItem>
-              <FeatureItem>
-                <span>✨</span>
-                <span>무료 사용</span>
-              </FeatureItem>
-            </Features> */}
-          </OAuthView>
-        )}
-
-        {/* Email View */}
-        {viewMode === 'email' && (
-          <EmailView>
-            <BackButton onClick={() => setViewMode('oauth')}>
-              <span>←</span>
-              <span>다른 방법으로 로그인</span>
-            </BackButton>
-
-            <form onSubmit={handleEmailSubmit}>
-              <FormGroup>
-                <FormLabel>이메일</FormLabel>
-                <FormInput
-                  ref={emailInputRef}
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <FormLabel>비밀번호</FormLabel>
-                <FormInput
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <ForgotPassword>
-                  <a href="#">비밀번호를 잊으셨나요?</a>
-                </ForgotPassword>
-              </FormGroup>
-
-              <SubmitButton type="submit">
-                로그인
-              </SubmitButton>
-            </form>
-
-            {/* <Divider>
-              <DividerLine />
-              <DividerText>또는</DividerText>
-              <DividerLine />
-            </Divider>
-
-            <OAuthButtons>
-              <OAuthButton className="google" onClick={handleGoogleLogin}>
-                <span>🔍</span>
-                <span>Google로 계속하기</span>
-              </OAuthButton>
-
-              <OAuthButton className="github" onClick={handleGithubLogin}>
-                <span>⚫</span>
-                <span>GitHub로 계속하기</span>
-              </OAuthButton>
-            </OAuthButtons> */}
-          </EmailView>
-        )}
+        </OAuthView>
 
         {/* Footer */}
         <Footer>
@@ -233,7 +79,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
             계정이 없으신가요? <FooterLink href="#">회원가입</FooterLink>
           </FooterText> */}
           <FooterText style={{ marginTop: '8px' }}>
-            <FooterLink href="/terms">이용약관</FooterLink> · 
+            <FooterLink href="/terms">이용약관</FooterLink> ·
             <FooterLink href="/privacy">개인정보처리방침</FooterLink>
           </FooterText>
         </Footer>
@@ -257,7 +103,7 @@ export const PageContainer = styled.div`
   overflow: hidden;
 `;
 
-const BackgroundShape = styled.div`
+export const BackgroundShape = styled.div`
   position: absolute;
   border-radius: 50%;
   opacity: 0.1;
@@ -328,32 +174,19 @@ export const LoginContainer = styled.div`
   }
 `;
 
-const LogoSection = styled.div`
+export const LogoSection = styled.div`
   text-align: center;
   margin-bottom: 40px;
 `;
 
-const Logo = styled.div`
+export const Logo = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
 `;
 
-const LogoIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 800;
-  font-size: 24px;
-`;
-
-const LogoText = styled.h1`
+export const LogoText = styled.h1`
   font-size: 28px;
   font-weight: 800;
   color: #0F172A;
@@ -363,24 +196,13 @@ const LogoText = styled.h1`
   }
 `;
 
-const WelcomeText = styled.h1`
-  font-size: 18px;
-  font-weight: 600;
-  color: #0F172A;
-  margin-bottom: 8px;
-
-  @media (max-width: 480px) {
-    font-size: 16px;
-  }
-`;
-
-const Subtitle = styled.p`
+export const Subtitle = styled.p`
   font-size: 15px;
   color: #64748B;
   line-height: 1.5;
 `;
 
-const OAuthView = styled.div`
+export const OAuthView = styled.div`
   animation: fadeIn 0.3s ease-out;
 
   @keyframes fadeIn {
@@ -389,7 +211,7 @@ const OAuthView = styled.div`
   }
 `;
 
-const OAuthButtons = styled.div`
+export const OAuthButtons = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -563,20 +385,20 @@ const FeatureItem = styled.div`
   }
 `;
 
-const Footer = styled.div`
+export const Footer = styled.div`
   text-align: center;
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid #F1F5F9;
 `;
 
-const FooterText = styled.p`
+export const FooterText = styled.p`
   font-size: 13px;
   color: #94A3B8;
   line-height: 1.6;
 `;
 
-const FooterLink = styled.a`
+export const FooterLink = styled.a`
   color: #2563EB;
   text-decoration: none;
   font-weight: 600;

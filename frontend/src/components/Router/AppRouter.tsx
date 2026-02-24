@@ -8,6 +8,7 @@ import PlaylistDetailPage from '../../pages/PlaylistDetailPage';
 import Privacy from '../../pages/Privacy';
 import Terms from '../../pages/Terms';
 import ProtectedRoute from './ProtectedRoute';
+import KakaoCallback from '../oauth/KakaoCallback';
 
 
 // 페이지 컴포넌트들...
@@ -28,6 +29,7 @@ const AppRouter = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/oauth/callback/kakao" element={<KakaoCallback />} />
 
             {/* 기본 경로 설정 */}
 

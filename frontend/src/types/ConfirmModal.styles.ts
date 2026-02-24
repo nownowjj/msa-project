@@ -32,6 +32,7 @@ export const Dialog = styled.div`
 
 export const Message = styled.p`
   font-size: 15px;
+  font-weight:500;
   color: #0F172A;
   line-height: 1.5;
   margin-bottom: 20px;

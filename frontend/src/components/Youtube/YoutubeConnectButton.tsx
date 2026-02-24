@@ -3,9 +3,8 @@ import { OAuthButton } from '../../pages/Login';
 
 const YoutubeConnectButton = ({ onSuccess }: { onSuccess: (token: string) => void }) => {
   const login = useGoogleLogin({
-    // scope: 'https://www.googleapis.com/auth/youtube.readonly profile email',
     scope: 'https://www.googleapis.com/auth/youtube.force-ssl profile email',
-    flow: 'auth-code', // 또는 'authorization_code' (권장),
+    flow: 'auth-code', 
     redirect_uri: 'http://localhost:5173/login',
     onSuccess: (res) => {
       onSuccess(res.code);

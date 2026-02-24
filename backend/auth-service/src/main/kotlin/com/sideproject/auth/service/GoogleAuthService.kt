@@ -6,7 +6,6 @@ import com.google.api.client.http.GenericUrl
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.sideproject.auth.component.GoogleTokenVerifier
-import com.sideproject.auth.entity.AuthProvider
 import com.sideproject.auth.entity.User
 import com.sideproject.auth.jwt.JwtProvider
 import com.sideproject.auth.repository.UserRepository
