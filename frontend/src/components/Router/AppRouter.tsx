@@ -16,12 +16,11 @@ import KakaoCallback from '../oauth/KakaoCallback';
 const AppRouter = () => {
     const navigate = useNavigate();
 
-    // useEffect(() => {
-    //     // 이제 여기는 BrowserRouter 내부이므로 navigate 사용 가능
-    //     if (localStorage.getItem('token')) {
-    //         navigate('/board', { replace: true });
-    //     }
-    // }, [navigate]);
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            navigate('/board', { replace: true });
+        }
+    }, [navigate]);
 
     return (
         <Routes>

@@ -14,12 +14,6 @@ class GoogleAuthController(
 ) {
     private val logger = LoggerFactory.getLogger(GoogleAuthController::class.java)
 
-    @PostMapping("/google")
-    fun googleLoginWithCode(
-        @RequestBody request: GoogleLoginRequestCode
-    ): LoginResponse {
-        return googleAuthService.googleLoginWithCode(request.code)
-    }
 
     @GetMapping("/token")
     fun getToken(

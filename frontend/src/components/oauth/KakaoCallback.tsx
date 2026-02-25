@@ -7,6 +7,7 @@ import YoutubeConnectButton from '../Youtube/YoutubeConnectButton';
 import { BackgroundShape, Footer, FooterLink, FooterText, LoginContainer, Logo, LogoSection, LogoText, OAuthButton, OAuthButtons, OAuthView, PageContainer, Subtitle } from '../../pages/Login';
 import AppIcon from '../common/LinkMintLogo';
 import { LoadingOverlay } from '../common/LoadingOverlay';
+import { GlobalAlert } from '../common/GlobalAlert';
 
 const KakaoCallback = () => {
   const { login } = useOAuthLogin();
@@ -24,6 +25,7 @@ const KakaoCallback = () => {
   return (
     <PageContainer>
       <LoadingOverlay message="카카오 계정으로 로그인 중..." />
+      <GlobalAlert />
       <BackgroundShape className="shape-1" />
       <BackgroundShape className="shape-2" />
       <BackgroundShape className="shape-3" />

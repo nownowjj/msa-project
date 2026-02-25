@@ -4,7 +4,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeToken
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.sideproject.auth.service.AuthProvider
-import com.sideproject.auth.service.GoogleTokens
 import com.sideproject.auth.service.OAuthStrategy
 import com.sideproject.auth.service.SocialUserInfo
 import org.springframework.beans.factory.annotation.Value
@@ -49,3 +48,9 @@ class GoogleOAuthStrategy(
         return GoogleTokens(tokenResponse.idToken, tokenResponse.accessToken, tokenResponse.refreshToken)
     }
 }
+
+data class GoogleTokens(
+    val idToken: String,
+    val accessToken: String,
+    val refreshToken: String?
+)

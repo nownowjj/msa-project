@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAlertStore } from "../hooks/useAlertStore";
 
 export const api = axios.create({
   // VITE_API_BASE_URL이 있으면 그 값을 쓰고, 없으면 로컬 프록시용 "/api" 사용
@@ -21,7 +22,7 @@ api.interceptors.response.use(
     // 성공 응답 (200대)은 그대로 통과
     return response;
   },
-  (error) => {
+  async (error) => {
     // 에러 발생 시 처리 (401, 403, 500 등)
     const { response } = error;
     console.log(response)
@@ -30,10 +31,13 @@ api.interceptors.response.use(
       // 서버에서 보낸 JSON 바디의 code 확인 (백엔드 sendErrorResponse에서 보낸 값)
       const errorCode = response.data.code;
 
+      let isAlerting = false; // 알림창이 이미 떠 있는지 확인하는 플래그
+
       if (errorCode === "TOKEN_EXPIRED") {
-        // 이직 포인트: 사용자에게 명확한 안내 후 세션 정리
-        alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
-        
+        isAlerting = true;
+        const { showAlert } = useAlertStore.getState();
+        await showAlert(`로그인 세션이 만료되었습니다.\n다시 로그인해주세요.`);
+        isAlerting = false; // 확인 후 해제
         localStorage.removeItem("token"); // 저장된 토큰 삭제
         
         // 현재 페이지가 로그인이 아닌 경우에만 리다이렉트 (무한 루프 방지)

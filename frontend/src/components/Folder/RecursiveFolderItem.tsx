@@ -141,8 +141,6 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
               <RecursiveFolderItem
                 key={child.id}
                 folder={child}
-                // activeId={activeId}
-                // onSelect={onSelect}
               />
             ))}
         </ChildrenContainer>

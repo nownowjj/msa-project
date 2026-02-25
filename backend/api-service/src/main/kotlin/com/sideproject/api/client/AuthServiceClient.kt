@@ -21,10 +21,6 @@ class AuthServiceClient(
             throw UnauthorizedException()
         }
 
-    // 구글 로그인 처리 및 access, refresh token 발급하여 DB 저장
-    fun googleLoginWithCode(code: String): LoginResponse =
-        authClient.googleLoginWithCode(GoogleLoginRequestCode(code))
-
     // 유효한 google access_token 발급
     fun getToken(email: String): TokenInfoResponse =
         authClient.getToken(email)

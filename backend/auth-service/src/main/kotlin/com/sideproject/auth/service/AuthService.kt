@@ -1,5 +1,6 @@
 package com.sideproject.auth.service
 
+import com.sideproject.auth.dto.SocialUserResponse
 import com.sideproject.auth.entity.User
 import com.sideproject.auth.jwt.JwtProvider
 import com.sideproject.auth.repository.UserRepository
@@ -23,42 +24,54 @@ class AuthService(
         val strategy = strategies.find { it.supports(providerName) }
             ?: throw IllegalArgumentException("지원하지 않는 로그인 방식입니다: $providerName")
 
-        // 2. 소셜 서비스로부터 유저 정보 획득 (Google 혹은 Kakao)
-        val socialUser = strategy.login(code)
+        val socialUserInfo = strategy.login(code)
 
-        // 3. email로 유저 신규/로그인 수행 확인
-        val existingUser = userRepository.findByEmail(socialUser.email)
-        val expiresAt = LocalDateTime.now().plusSeconds(socialUser.expiresIn)
+        val result = findOrCreateUser(socialUserInfo)
 
-        val user = if (existingUser != null) {
-            log.info("기존 유저 로그인: ${socialUser.email}")
-            existingUser.apply {
-                // 기존 구글 유저 업데이트 로직을 확장하여 공통 업데이트
-                updateSocialInfo(socialUser, expiresAt)
-            }
-        } else {
-            log.info("신규 유저 생성: ${socialUser.email}")
-            userRepository.save(
-                User(
-                    email = socialUser.email,
-                    name = socialUser.name,
-                    picture = socialUser.picture,
-                    provider = socialUser.provider,
-                    providerId = socialUser.providerId,
-                    // 구글일 때만 값을 넣고, 나머지는 null 전달
-                    googleAccessToken = if (socialUser.provider == AuthProvider.GOOGLE) socialUser.accessToken else null,
-                    googleRefreshToken = if (socialUser.provider == AuthProvider.GOOGLE) socialUser.refreshToken else null,
-                    googleTokenExpiresAt = if (socialUser.provider == AuthProvider.GOOGLE) expiresAt else null
-                )
-            )
-        }
-
-        // 4. 자체 JWT 발급
-        val accessToken = jwtProvider.createAccessToken(user)
+        val accessToken = jwtProvider.createAccessToken(result.user)
         return LoginResponse(
             accessToken = accessToken,
-            userId = user.id!!,
-            isNewUser = (existingUser == null)
+            userId = result.user.id!!,
+            isNewUser = result.isNewUser,
+            message = result.message // 컨트롤러를 통해 프론트에 전달됨
         )
     }
+
+    private fun findOrCreateUser(socialUserInfo: SocialUserInfo): UserAuthResult {
+        val expiresAt = LocalDateTime.now().plusSeconds(socialUserInfo.expiresIn)
+        val existingUser = userRepository.findByEmail(socialUserInfo.email)
+
+        if (existingUser != null) {
+            // ✅ 1. 이메일은 같지만 가입된 소셜 플랫폼(Provider)이 다른 경우
+            if (existingUser.provider != socialUserInfo.provider) {
+                log.info("이메일 중복 - 기존 플랫폼으로 로그인: ${existingUser.provider}")
+
+                // 기존 유저 정보 업데이트 (선택 사항: 타 플랫폼 토큰도 업데이트할지 결정)
+                existingUser.updateSocialInfo(socialUserInfo, expiresAt)
+
+                return UserAuthResult(
+                    user = existingUser,
+                    isNewUser = false,
+                    message = "기존에 가입하신 ${existingUser.provider} 계정과 이메일이 일치하여 ${existingUser.provider} 계정으로 로그인을 수행합니다."
+                )
+            }
+
+            // ✅ 2. 기존 유저이고 플랫폼도 일치하는 경우
+            log.info("기존 유저 로그인: ${socialUserInfo.email}")
+            existingUser.updateSocialInfo(socialUserInfo, expiresAt)
+            return UserAuthResult(existingUser, false)
+        }
+
+        // ✅ 3. 신규 유저 생성
+        log.info("신규 유저 생성: ${socialUserInfo.email}")
+        val newUser = userRepository.save(User.createSocialUser(socialUserInfo, expiresAt))
+        return UserAuthResult(newUser, true)
+    }
 }
+
+// 결과 전달을 위한 임시 DTO
+data class UserAuthResult(
+    val user: User,
+    val isNewUser: Boolean,
+    val message: String? = null
+)

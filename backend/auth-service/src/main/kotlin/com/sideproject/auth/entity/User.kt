@@ -1,5 +1,6 @@
 package com.sideproject.auth.entity
 
+import com.sideproject.auth.dto.SocialUserResponse
 import com.sideproject.auth.service.AuthProvider
 import com.sideproject.auth.service.SocialUserInfo
 import com.sideproject.common.entity.BaseTimeEntity
@@ -66,26 +67,33 @@ class User(
         }
     }
 
-    /**
-     * 소셜 정보를 통합하여 업데이트하는 공통 메서드
-     */
-    fun updateSocialInfo(
-        socialUserInfo: SocialUserInfo, expiresAt: LocalDateTime? = null
-    ) {
-        // 1. 공통 정보 업데이트
+
+    fun updateSocialInfo(socialUserInfo: SocialUserInfo, expiresAt: LocalDateTime) {
         this.name = socialUserInfo.name
         this.picture = socialUserInfo.picture
 
-        // 2. 구글 공급자인 경우에만 전용 필드 업데이트
         if (socialUserInfo.provider == AuthProvider.GOOGLE) {
             this.googleAccessToken = socialUserInfo.accessToken
-            this.googleTokenExpiresAt = expiresAt
-
-            if (!socialUserInfo.refreshToken.isNullOrBlank()) {
-                this.googleRefreshToken = socialUserInfo.refreshToken
+            // 리프레시 토큰은 값이 있을 때만 교체 (보안/정책상 유지 목적)
+            socialUserInfo.refreshToken?.let {
+                this.googleRefreshToken = it
             }
+            this.googleTokenExpiresAt = expiresAt
         }
-        // 카카오 등 타 소셜은 구글 관련 필드를 건드리지 않음 (이미 null이거나 기존 값 유지)
+    }
+    companion object {
+        fun createSocialUser(socialUserInfo: SocialUserInfo, expiresAt: LocalDateTime): User {
+            return User(
+                email = socialUserInfo.email,
+                name = socialUserInfo.name,
+                picture = socialUserInfo.picture,
+                provider = socialUserInfo.provider,
+                providerId = socialUserInfo.providerId,
+                googleAccessToken = if (socialUserInfo.provider == AuthProvider.GOOGLE) socialUserInfo.accessToken else null,
+                googleRefreshToken = if (socialUserInfo.provider == AuthProvider.GOOGLE) socialUserInfo.refreshToken else null,
+                googleTokenExpiresAt = if (socialUserInfo.provider == AuthProvider.GOOGLE) expiresAt else null
+            )
+        }
     }
 }
 
