@@ -24,8 +24,7 @@ class JwtProvider(
             .setSubject(user.email)
             .claim("userId", user.id)
             .setIssuedAt(now)
-            .setExpiration(Date(now.time + Duration.ofSeconds(30).toMillis()))
-//            .setExpiration(Date(now.time + 1000 * 60 * 6000 ))
+            .setExpiration(Date(now.time + 1000 * 60 * 6000 ))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
     }
