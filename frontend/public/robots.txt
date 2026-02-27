@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://link-mint.vercel.app/sitemap.xml
