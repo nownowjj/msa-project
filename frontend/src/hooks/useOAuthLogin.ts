@@ -28,7 +28,7 @@ export const useOAuthLogin = () => {
       // 에러가 났을 때만 다시 시도할 수 있도록 초기화
       isProcessing.current = false; 
       
-      showAlert('로그인에 실패했습니다.<br/>다시 시도해주세요.');
+      showAlert('로그인에 실패했습니다.\n다시 시도해주세요.');
       navigate('/login');
     } finally {
       // 성공/실패 여부와 상관없이 처리가 끝났으므로 Flag 초기화
