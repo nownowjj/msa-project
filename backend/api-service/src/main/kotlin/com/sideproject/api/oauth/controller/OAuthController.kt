@@ -24,6 +24,7 @@ class OAuthController (
         @PathVariable provider: String,
         @RequestBody request: OAuthCodeRequest
     ): LoginResponse {
+        log.debug("API SocialLogin: {}", provider)
         // auth-service로 provider 정보와 함께 전달
         val response = authServiceClient.socialLogin(provider, request.code)
 
