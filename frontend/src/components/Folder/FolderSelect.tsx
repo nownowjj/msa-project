@@ -133,6 +133,11 @@ const FolderSelect = ({ folders, currentFolderId, onChange, showRootOption, excl
             ...base,
             ...customStyles.menuList(base), // 기존 menuList 스타일(스크롤바 등) 유지
             maxHeight: showRootOption ? '300px' : '150px', // 조건부 높이 설정
+
+            // 2. 모바일 대응 (768px 이하일 때 무조건 150px)
+            '@media only screen and (max-width: 768px)': {
+              maxHeight: '150px',
+            },
           }),
           menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
         }

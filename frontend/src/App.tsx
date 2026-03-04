@@ -25,7 +25,10 @@ function App() {
       <BrowserRouter>
         <AppRouter />
       </BrowserRouter>
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ReactQueryDevtools 
+        initialIsOpen={false} 
+        buttonPosition="bottom-left" // 열기/닫기 버튼의 위치만 따로 설정 가능
+      />
     </QueryClientProvider>
   );
 }

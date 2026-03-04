@@ -176,6 +176,10 @@ const ModalContainer = styled.div`
       transform: translateY(0) scale(1);
     }
   }
+
+  @media (max-width: 768px) {
+    width:90%;
+  }
 `;
 
 const ModalHeader = styled.div`
@@ -184,6 +188,11 @@ const ModalHeader = styled.div`
   align-items: center;
   padding: 24px 28px;
   border-bottom: 1px solid #E2E8F0;
+  
+
+  @media (max-width: 768px) {
+    padding: 10px 28px;
+  }
 `;
 
 const ModalTitle = styled.h2`
@@ -287,6 +296,10 @@ const FolderNameInput = styled.input`
 
   &::placeholder {
     color: #94A3B8;
+  }
+
+  @media (max-width: 768px) {
+    height: 40px;
   }
 `;
 

@@ -368,6 +368,10 @@ export const SidePanelContainer = styled.aside<{ isOpen: boolean }>`
   z-index: 101;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    width:100vw;
+  }
 `;
 
 export const PanelHeader = styled.div`
@@ -377,6 +381,10 @@ export const PanelHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    padding: 7px 28px;
+  }
 `;
 
 export const PanelTitle = styled.h2`

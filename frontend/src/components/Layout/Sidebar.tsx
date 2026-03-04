@@ -3,14 +3,19 @@ import styled from 'styled-components';
 import { fetchAllFolder } from '../../api/folder';
 import { useFolderModalStore } from '../../hooks/useFolderModalStore';
 import { useFolderStore } from '../../hooks/useFolderStore';
-import RecursiveFolderItem from '../Folder/RecursiveFolderItem';
 import { useSearchStore } from '../../hooks/useSearchStore';
+import { useSidebarStore } from '../../hooks/useSidebarStore';
+import AppIcon from '../common/LinkMintLogo';
+import UserProfile from '../common/UserProfile';
+import RecursiveFolderItem from '../Folder/RecursiveFolderItem';
+import { Title } from './Header';
 
 const Sidebar = () => {
   const { openCreateModal } = useFolderModalStore();
   const { activeFolder, setActiveFolder } = useFolderStore();
   const { clearSearch } = useSearchStore();
-
+  const { isOpen, closeSidebar } = useSidebarStore();
+  
   const { data: folders ,isLoading } = useQuery({
       queryKey: ['folders'],
       queryFn: fetchAllFolder,
@@ -22,9 +27,20 @@ const Sidebar = () => {
       retryDelay: 500, // 0.5초 대기 후 재시도
   });
 
-
   return (
-    <SidebarContainer>
+    <SidebarContainer $isOpen={isOpen}>
+
+      <MoblieSection>
+        <Row>
+          <AppIcon size={30}/>
+          <Title>Link Mint</Title>
+        </Row>
+        <Row>
+          <UserProfile children={'U'} size={30}/>
+          <Title>U</Title>
+        </Row>
+      </MoblieSection>
+
       <Section>
         <SectionTitle>탐색</SectionTitle>
         <StaticItem
@@ -63,7 +79,28 @@ const Sidebar = () => {
 
 export default Sidebar;
 
+/* Styled Components */
+const SidebarContainer = styled.div<{ $isOpen: boolean }>`
+  width: 260px;
+  background: #f8f9fa;
+  height: calc(100vh - 68px);
+  padding: 20px 10px;
+  border-right: 1px solid #e9ecef;
 
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 모바일 대응 (주로 768px 미만) */
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    z-index: 1000;
+    height: 100vh;
+    
+    /* 닫혀있을 때 화면 밖으로 밀어냄 */
+    left: ${({ $isOpen }) => ($isOpen ? '0px' : '-260px')};
+  }
+`;
 
 const FolderEditBtn = styled.button`
   width: 28px;
@@ -87,18 +124,29 @@ const FolderEditBtn = styled.button`
   }
 `
 
-/* Styled Components */
-const SidebarContainer = styled.div`
-  width: 260px;
-  background: #f8f9fa;
-  height: calc(100vh - 68px);
-  padding: 20px 10px;
-  border-right: 1px solid #e9ecef;
-`;
-
 const Section = styled.div`
   margin-bottom: 24px;
 `;
+
+const MoblieSection = styled.div`
+  width: calc(100% + 20px);
+  margin-left:-10px;
+  padding:0 10px 10px 10px;
+  border-bottom: var(--border);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  margin-bottom:10px;
+  display:none;
+
+  @media (max-width: 768px) {
+    display:block;
+  }
+`
+
+const Row = styled.div`
+  display:flex;
+  gap:10px;
+  padding-bottom:10px;
+`
 
 const SectionTitle = styled.h3`
   font-size: 12px;

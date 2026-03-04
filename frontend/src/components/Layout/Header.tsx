@@ -7,6 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSearchStore } from "../../hooks/useSearchStore";
 import { useFolderStore } from "../../hooks/useFolderStore";
 import AppIcon from "../common/LinkMintLogo";
+import { useSidebarStore } from "../../hooks/useSidebarStore";
+import UserProfile from "../common/UserProfile";
 
 const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,7 +18,7 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const { showAlert } = useAlertStore();
   const queryClient = useQueryClient();
   const { resetActiveFolder } = useFolderStore();
-
+  const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,45 +59,53 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
   const [tempInput, setTempInput] = useState('');
   const { setSearchQuery , clearSearch} = useSearchStore();
 
-  const handleSearch = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      resetActiveFolder();
-      // 검색어 전처리 (양끝 공백 제거 및 모든 공백 제거) -> 예: "Spring Boot " -> "springboot"
-      const processedQuery = tempInput.trim().replace(/\s+/g, '').toLowerCase();
+  // 검색 실행 공통 로직
+  const executeSearch = () => {
+    resetActiveFolder();
+    const processedQuery = tempInput.trim().replace(/\s+/g, '').toLowerCase();
 
-      if (processedQuery) {
-        setSearchQuery(processedQuery);
-      } else {
-        // 검색어가 비어있을 경우 검색 초기화 처리
-        clearSearch();
-      }
+    if (processedQuery) {
+      setSearchQuery(processedQuery);
+    } else {
+      clearSearch();
+    }
+  };
+
+  // 키보드 엔터 핸들러
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      executeSearch();
     }
   };
 
   return (
     <HeaderContainer>
       <HeaderLeft>
+        <ToggleBtn onClick={toggleSidebar}>
+            <span style={{fontSize:'21px',fontWeight:'bold'}}>☰</span>
+        </ToggleBtn>
         <Logo>
-          <AppIcon size={32} />
-          <span>Link Mint</span>
+          <AppIcon size={28} />
+          <Title>Link Mint</Title>
         </Logo>
 
         <SearchContainer>
-          <SearchIcon>🔍</SearchIcon>
+          <SearchIcon onClick={executeSearch}>🔍</SearchIcon>
           <SearchBar
             value={tempInput}
             onChange={(e) => setTempInput(e.target.value)}
-            onKeyDown={handleSearch}
+            onKeyDown={handleKeyDown}
             placeholder="검색어, #키워드, URL로 검색..."
           />
         </SearchContainer>
       </HeaderLeft>
+
       <HeaderActions ref={menuRef}>
         <PrimaryButton onClick={onAddClick}>
           <span>+</span>
           <span>새 링크 추가</span>
         </PrimaryButton>
-        <UserAvatar onClick={() => setIsMenuOpen(!isMenuOpen)}>U</UserAvatar>
+        <UserProfile onClick={() => setIsMenuOpen(!isMenuOpen)} children={'U'}/>
 
         <DropdownMenu isOpen={isMenuOpen}>
           <MenuItem variant="danger" onClick={handleLogout}>
@@ -125,11 +135,39 @@ const HeaderContainer = styled.header`
   gap: 32px;
   z-index: 100;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* var(--shadow-sm) */
+
+  @media (max-width: 768px) {
+    height:55px;
+    padding: 0 10px;
+    gap: 0px;
+  }
 `;
+
+const ToggleBtn = styled.button`
+  width: 40px;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+  display:none;
+
+  @media (max-width: 768px) {
+    display:block;
+  }
+`
 
 const HeaderLeft = styled.div`
   display:flex;
   gap:32px;
+
+  @media (max-width: 768px) {
+    // height:55px;
+    gap:5px;
+  }
 `
 
 const Logo = styled.div`
@@ -142,30 +180,33 @@ const Logo = styled.div`
   white-space: nowrap;
   cursor: pointer;
   width:228px;
+
+  @media (max-width: 768px) {
+    width:0px;
+  }
 `;
 
-const LogoIcon = styled.div`
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 18px;
-`;
 
 const SearchContainer = styled.div`
   flex: 1;
   max-width: 600px;
   position: relative;
+
+  @media (max-width: 768px) {
+    position:fixed;
+    left:0;
+    top:56px;
+    width:100%;
+    padding:10px 15px;
+    background-color:white;
+    border-bottom: var(--border);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
 `;
 
 const SearchBar = styled.input`
   width: 100%;
-  height: 44px;
+  height: 35px;
   padding: 0 16px 0 44px;
   border: 1px solid #e5e7eb; /* var(--border) */
   border-radius: 8px; /* var(--radius-sm) */
@@ -180,6 +221,11 @@ const SearchBar = styled.input`
     background: white;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
   }
+
+  @media (max-width: 768px) {
+    padding: 0 44px 0 16px;
+
+  }
 `;
 
 const SearchIcon = styled.span`
@@ -189,7 +235,14 @@ const SearchIcon = styled.span`
   transform: translateY(-50%);
   color: #9ca3af; /* var(--text-muted) */
   font-size: 18px;
-  pointer-events: none;
+  cursor: pointer; 
+  pointer-events: auto; /* 클릭 가능하게 변경 */
+
+  @media (max-width: 768px) {
+    left:auto;
+    right:30px;
+    line-height:35px;
+  }
 `;
 
 const HeaderActions = styled.div`
@@ -224,25 +277,9 @@ const PrimaryButton = styled.button`
   &:active {
     transform: translateY(0);
   }
-`;
 
-const UserAvatar = styled.div`
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: transform 0.2s;
-  position:relative;
-
-  &:hover {
-    transform: scale(1.05);
+  @media (max-width: 768px) {
+    display:none;
   }
 `;
 
@@ -316,3 +353,10 @@ const MenuDivider = styled.div`
   background: #F1F5F9;
   margin: 4px 0;
 `;
+
+export const Title = styled.span`
+  @media (max-width: 768px) {
+    font-size:19px;
+    font-weight:600;
+  }
+`
