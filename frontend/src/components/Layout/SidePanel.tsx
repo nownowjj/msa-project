@@ -359,7 +359,7 @@ export const SidePanelContainer = styled.aside<{ isOpen: boolean }>`
   top: 0;
   right: 0;
   width: 480px;
-  height: 100vh;
+  height: 100dvh;
   background: ${colors.bgCard};
   border-left: 1px solid ${colors.border};
   box-shadow: ${colors.shadowXl};

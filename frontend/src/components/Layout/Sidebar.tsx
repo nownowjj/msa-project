@@ -146,6 +146,7 @@ const Row = styled.div`
   display:flex;
   gap:10px;
   padding-bottom:10px;
+  align-items: center;
 `
 
 const SectionTitle = styled.h3`

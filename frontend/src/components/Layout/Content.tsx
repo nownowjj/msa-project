@@ -74,7 +74,7 @@ const Content = ({ onEditClick, onAddClick }: { onEditClick: (item: ArchiveRespo
       </ContentHeader>
 
       <CardsGrid>
-        {/* 1. 로딩 중일 때 (선택사항) */}
+        {/* 1. 로딩 중일 때 */}
         {isLoading && <LoadingWrapper><LoadingText>데이터를 불러오는 중입니다...</LoadingText></LoadingWrapper>}
 
 
@@ -107,15 +107,6 @@ const Content = ({ onEditClick, onAddClick }: { onEditClick: (item: ArchiveRespo
           />
         ))}
 
-        {/* 4. 추가 데이터 로드 버튼 (무한 스크롤 대신 우선 버튼으로 구현) */}
-        {/* {hasNextPage && (
-                        <button 
-                            onClick={() => fetchNextPage()} 
-                            disabled={isFetchingNextPage}
-                        >
-                            {isFetchingNextPage ? '불러오는 중...' : '더보기'}
-                        </button>
-                )} */}
       </CardsGrid>
 
 
@@ -209,7 +200,8 @@ const ViewBtn = styled.button<{ active?: boolean }>`
 // 2. 카드 그리드 및 개별 카드 스타일
 const CardsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  justify-content: center;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 340px));
   gap: 24px;
 `;
 
