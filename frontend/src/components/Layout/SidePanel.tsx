@@ -36,7 +36,7 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
 
 
 
-  // 1. AI 분석을 위한 Mutation
+    // 1. AI 분석을 위한 Mutation
     const aiAnalyzeMutation = useMutation({
       mutationFn: fetchArchiveAiAnalyze,
       onSuccess: (res) => {
@@ -54,6 +54,11 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
     // 2. 메타데이터 호출을 위한 Mutation
     const metadataMutation = useMutation({
       mutationFn: fetchArchiveMetadata,
+      onMutate: () => {
+        // 새로운 데이터를 가져오기 전에 기존 상태 초기화
+        setThumbnail(''); 
+        setTitle('정보를 가져오는 중...');
+      },
       onSuccess: (meta) => {
         if (meta.title) setTitle(meta.title);
         if (meta.thumbnailUrl) setThumbnail(meta.thumbnailUrl);
@@ -86,6 +91,57 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
         metadataMutation.mutate(inputUrl);
       }
     };
+
+    const lastCheckedClipboard = useRef('');
+    const [clipboardUrl, setClipboardUrl] = useState<string | null>(null);
+
+    const checkClipboardAndSuggest = async () => {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) return;
+
+        const text = await navigator.clipboard.readText();
+        const urlPattern = /^(https?:\/\/)/;
+
+        // 이전에 확인한 것과 다르고, 현재 입력된 URL과도 다를 때만 제안 UI 표시
+        if (urlPattern.test(text.trim()) && text.trim() !== url && text.trim() !== lastCheckedClipboard.current) {
+          setClipboardUrl(text.trim());
+        } else {
+          setClipboardUrl(null);
+        }
+      } catch (err) {
+        console.warn("클립보드 읽기 권한 거부");
+      }
+    };
+
+    // 붙여넣기 클릭 핸들러
+    const handleApplyClipboard = () => {
+      if (clipboardUrl) {
+        setUrl(clipboardUrl);
+        metadataMutation.mutate(clipboardUrl); // 메타데이터 추출 바로 실행
+        lastCheckedClipboard.current = clipboardUrl; // 적용했으므로 다시 묻지 않음
+        setClipboardUrl(null); // 제안 UI 숨김
+      }
+    };
+
+    // 3. 데이터 초기화 useEffect 분리 (추천)
+    useEffect(() => {
+      if (!isOpen || data) return; // 열려있지 않거나 수정 모드면 중단
+
+      // ✅ 포커스 이벤트 리스너
+      const handleFocus = () => {
+        // 브라우저 탭을 나갔다 들어올 때만 체크하게 함
+        checkClipboardAndSuggest();
+      };
+
+      window.addEventListener('focus', handleFocus);
+      checkClipboardAndSuggest(); // 처음 열렸을 때 실행
+
+      return () => {
+        window.removeEventListener('focus', handleFocus);
+        // 패널 닫힐 때 ref 초기화 (다음에 열 때 다시 체크할 수 있게)
+        lastCheckedClipboard.current = '';
+      };
+    }, [isOpen, data]); // 의존성 단순화
 
     // 3. 데이터 초기화 (신규/수정 전환 시)
     useEffect(() => {
@@ -185,6 +241,8 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
     };
 
 
+
+
     return (
     <SidePanelContainer isOpen={isOpen}>
       <PanelHeader>
@@ -206,6 +264,28 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
 
         <FormGroup>
           <FormLabel>URL</FormLabel>
+
+          {/* ✅ 클립보드 제안 UI */}
+          {!data && clipboardUrl && (
+            <ClipboardSuggestion>
+              <SuggestText>
+                📋 복사된 링크: <strong>{clipboardUrl}</strong>
+              </SuggestText>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <SuggestBtn onClick={handleApplyClipboard}>붙여넣기</SuggestBtn>
+                <SuggestBtn 
+                  style={{ background: '#adb5bd' }} 
+                  onClick={() => {
+                    lastCheckedClipboard.current = clipboardUrl; // 무시하기 기록
+                    setClipboardUrl(null);
+                  }}
+                >
+                  무시
+                </SuggestBtn>
+              </div>
+            </ClipboardSuggestion>
+          )}
+
           <FormInput 
             type="text" 
             placeholder="https://..." 
@@ -673,4 +753,47 @@ export const Divider = styled.div`
   height: 1px;
   background: ${colors.borderLight};
   margin: 24px 0;
+`;
+
+const ClipboardSuggestion = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f1f3f5;
+  border: 1px dashed ${colors.primary};
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  animation: fadeIn 0.3s ease-out;
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const SuggestText = styled.span`
+  font-size: 12px;
+  color: ${colors.textSecondary};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 280px;
+  
+  strong { color: ${colors.primary}; }
+`;
+
+const SuggestBtn = styled.button`
+  background: ${colors.primary};
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-left: 8px;
+
+  &:hover { background: ${colors.primaryHover}; }
 `;

@@ -201,8 +201,12 @@ const ViewBtn = styled.button<{ active?: boolean }>`
 const CardsGrid = styled.div`
   display: grid;
   justify-content: center;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 340px));
   gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 340px));
+  }
 `;
 
 
