@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { css, keyframes } from "styled-components";
-import { useConfirmStore } from "../../hooks/useConfirmStore";
-import { useAlertStore } from "../../hooks/useAlertStore";
+import { useConfirmStore } from "../../store/useConfirmStore";
+import { useAlertStore } from "../../store/useAlertStore";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSearchStore } from "../../hooks/useSearchStore";
-import { useFolderStore } from "../../hooks/useFolderStore";
+import { useSearchStore } from "../../store/useSearchStore";
+import { useFolderStore } from "../../store/useFolderStore";
 import AppIcon from "../common/LinkMintLogo";
-import { useSidebarStore } from "../../hooks/useSidebarStore";
+import { useSidebarStore } from "../../store/useSidebarStore";
 import UserProfile from "../common/UserProfile";
 
-const Header = ({ onAddClick }: { onAddClick: () => void }) => {
+const Header = ({ onAddClick , hideOn }: { onAddClick: () => void , hideOn?: boolean  }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null); // 드롭다운 영역을 참조하기 위한 ref
   const navigate = useNavigate();
@@ -89,7 +89,7 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
           <Title>Link Mint</Title>
         </Logo>
 
-        <SearchContainer>
+        <SearchContainer $hideOn={hideOn || false}>
           <SearchIcon onClick={executeSearch}>🔍</SearchIcon>
           <SearchBar
             value={tempInput}
@@ -101,7 +101,7 @@ const Header = ({ onAddClick }: { onAddClick: () => void }) => {
       </HeaderLeft>
 
       <HeaderActions ref={menuRef}>
-        <PrimaryButton onClick={onAddClick}>
+        <PrimaryButton onClick={onAddClick} $hideOn={hideOn || false}>
           <span>+</span>
           <span>새 링크 추가</span>
         </PrimaryButton>
@@ -187,10 +187,11 @@ const Logo = styled.div`
 `;
 
 
-const SearchContainer = styled.div`
+const SearchContainer = styled.div<{$hideOn:boolean}>`
   flex: 1;
   max-width: 600px;
   position: relative;
+  display: ${props => (props.$hideOn ? 'none' : 'block')};
 
   @media (max-width: 768px) {
     position:fixed;
@@ -252,7 +253,7 @@ const HeaderActions = styled.div`
   position: relative;
 `;
 
-const PrimaryButton = styled.button`
+const PrimaryButton = styled.button<{$hideOn:boolean}>`
   height: 44px;
   padding: 0 24px;
   background: #2563eb; /* var(--primary) */
@@ -267,6 +268,7 @@ const PrimaryButton = styled.button`
   align-items: center;
   gap: 8px;
   font-family: inherit;
+  display: ${props => (props.$hideOn ? 'none' : 'block')};
 
   &:hover {
     background: #1d4ed8; /* var(--primary-hover) */

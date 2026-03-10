@@ -1,7 +1,7 @@
 import { useRef } from 'react'; // useRef 사용
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/api';
-import { useAlertStore } from './useAlertStore';
+import { useAlertStore } from '../store/useAlertStore';
 
 export const useOAuthLogin = () => {
   const navigate = useNavigate();

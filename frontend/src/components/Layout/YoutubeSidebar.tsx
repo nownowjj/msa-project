@@ -1,87 +1,88 @@
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { fetchAllFolder } from '../../api/folder';
-import { useFolderModalStore } from '../../store/useFolderModalStore';
-import { useFolderStore } from '../../store/useFolderStore';
-import { useSearchStore } from '../../store/useSearchStore';
+import { fetchMyPlaylists } from '../../api/youtube';
 import { useSidebarStore } from '../../store/useSidebarStore';
+import { useYoutubeStore } from '../../store/useYoutubeStore';
 import AppIcon from '../common/LinkMintLogo';
 import UserProfile from '../common/UserProfile';
-import RecursiveFolderItem from '../Folder/RecursiveFolderItem';
 import { Title } from './Header';
-import { useNavigate } from 'react-router-dom';
+import { FolderName } from '../Folder/RecursiveFolderItem';
 
-const Sidebar = () => {
-  const { openCreateModal } = useFolderModalStore();
-  const { activeFolder, setActiveFolder } = useFolderStore();
-  const { clearSearch } = useSearchStore();
-  const { isOpen } = useSidebarStore();
-  const navigate = useNavigate();
+const YoutubeSidebar = () => {
+    const { selectedPlaylistId, selectPlaylist, resetToAll } = useYoutubeStore();
+    const { isOpen } = useSidebarStore();
+    const navigate = useNavigate();
 
-  const { data: folders ,isLoading } = useQuery({
-      queryKey: ['folders'],
-      queryFn: fetchAllFolder,
-      // 데이터가 비어있다면(회원가입 직후) 최대 3번까지 재시도
-      retry: (failureCount, error) => {
-          if (folders?.length === 0 && failureCount < 2) return true;
-          return false;
-      },
-      retryDelay: 500, // 0.5초 대기 후 재시도
-  });
+    const { data: playlists , isLoading} = useQuery({
+        queryKey: ['playlists'],
+        queryFn: fetchMyPlaylists,
+        staleTime: 1000 * 60 * 5 // 5분간 Fresh 상태 유지
+    });
 
-  return (
-    <SidebarContainer $isOpen={isOpen}>
+    // handleAllViewClick도 간단해집니다.
+    const handleAllViewClick = () => {
+        resetToAll();
+        // 데이터 갱신이 필요하다면 queryClient.invalidateQueries(['playlists']) 사용
+    };
 
-      <MoblieSection>
-        <Row>
-          <AppIcon size={30}/>
-          <Title>Link Mint</Title>
-        </Row>
-        <Row>
-          <UserProfile children={'U'} size={30}/>
-          <Title>U</Title>
-        </Row>
-      </MoblieSection>
+    return (
+        <SidebarContainer $isOpen={isOpen}>
 
-      <Section>
-        <SectionTitle>탐색</SectionTitle>
-        <StaticItem
-          active={activeFolder.id === -1}
-          onClick={() => {
-            clearSearch();
-            setActiveFolder(-1, "전체보기")}
-          }
-          depth={2}
-        >
-          <span className="icon">🌍</span>
-          <span className="count all">전체보기</span>
-        </StaticItem>
+            <MoblieSection>
+                <Row>
+                    <AppIcon size={30} />
+                    <Title>Link Mint</Title>
+                </Row>
+                <Row>
+                    <UserProfile children={'U'} size={30} />
+                    <Title>U</Title>
+                </Row>
+            </MoblieSection>
 
-      </Section>
+            <Section>
+                <SectionTitle>탐색</SectionTitle>
+                <StaticItem
+                    active={selectedPlaylistId === null} // null일 때 전체보기 active
+                    onClick={handleAllViewClick}
+                    depth={2}
+                >
+                    <span className="icon">🏠</span>
+                    <span className="count all">전체 재생목록</span>
+                </StaticItem>
+            </Section>
 
-      <Section $isMaxHeight={true}>
-        <SectionTitle>내 폴더</SectionTitle>
-        {isLoading ? (
-          <LoadingText>폴더 불러오는 중...</LoadingText>
-        ) : (
-          folders?.map((folder) => (
-            <RecursiveFolderItem
-              key={folder.id}
-              folder={folder}
-            />
-          ))
-        )}
-      </Section>
+            <Section $isMaxHeight={true}>
+                <SectionTitle>재생목록</SectionTitle>
+                {isLoading ? (
+                    <LoadingText>목록 불러오는 중...</LoadingText>
+                ) : (
+                    playlists?.map((playlist) => (
+                        <StaticItem
+                            key={playlist.id}
+                            active={selectedPlaylistId === playlist.id}
+                            onClick={() => selectPlaylist(playlist.id)}
+                            depth={2}
+                        >
+                            <div className="left-section">
+                                <span className="icon">📂</span>
+                                <FolderName>{playlist.snippet.title}</FolderName>
+                            </div>
+                            <span className={playlist.contentDetails.itemCount === 0 ? "zero" : "count"}>
+                                {playlist.contentDetails.itemCount}
+                            </span>
+                        </StaticItem>
+                    ))
+                )}
+            </Section>
 
-      <NewFolderButton onClick={openCreateModal}>+ 새 폴더</NewFolderButton>
-
-      <NewFolderButton onClick={()=>{ navigate('/playlists');}}>+ Youtube API</NewFolderButton>
-    </SidebarContainer>
-  );
+            <NewFolderButton onClick={() => { navigate('/board'); }}>Link Mint</NewFolderButton>
+        </SidebarContainer>
+    );
 };
 
 
-export default Sidebar;
+export default YoutubeSidebar;
 
 /* Styled Components */
 const SidebarContainer = styled.div<{ $isOpen: boolean }>`

@@ -1,26 +1,18 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import DashBoard from '../../pages/DashBoard';
 import LoginPage from '../../pages/Login';
 import MyPage from '../../pages/MyPage';
-import MyPlayListPage from '../../pages/MyPlayListPage';
 import PlaylistDetailPage from '../../pages/PlaylistDetailPage';
 import Privacy from '../../pages/Privacy';
 import Terms from '../../pages/Terms';
-import ProtectedRoute from './ProtectedRoute';
+import MyPlayListPage from '../../pages/YoutubePlayListDashBoard';
 import KakaoCallback from '../oauth/KakaoCallback';
+import ProtectedRoute from './ProtectedRoute';
 
 
 // 페이지 컴포넌트들...
 
 const AppRouter = () => {
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        if (localStorage.getItem('token')) {
-            navigate('/board', { replace: true });
-        }
-    }, [navigate]);
 
     return (
         <Routes>

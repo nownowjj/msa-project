@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { useInView } from 'react-intersection-observer'; // 1. Hook 임포트
 import styled, { keyframes } from "styled-components";
 import { fetchArchivesAll, fetchArchivesByFolder, fetchSearchArchives } from "../../api/archive";
-import { useFolderStore } from "../../hooks/useFolderStore";
-import { useSearchStore } from "../../hooks/useSearchStore";
+import { useFolderStore } from "../../store/useFolderStore";
+import { useSearchStore } from "../../store/useSearchStore";
 import type { ArchiveResponse } from "../../types/archive";
 import ArchiveCard from "../Archive/ArchiveCard";
 

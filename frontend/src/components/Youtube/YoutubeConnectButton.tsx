@@ -4,7 +4,9 @@ import { OAuthButton } from '../../pages/Login';
 const YoutubeConnectButton = ({ onSuccess }: { onSuccess: (token: string) => void }) => {
   const login = useGoogleLogin({
     // scope: 'https://www.googleapis.com/auth/youtube.force-ssl profile email',
-    scope: 'email profile',
+    // scope: 'email profile',
+    // scope: 'email profile https://www.googleapis.com/auth/youtube.readonly',
+    scope : 'email profile https://www.googleapis.com/auth/youtube.force-ssl',
     flow: 'auth-code', 
     redirect_uri: 'http://localhost:5173/login',
     onSuccess: (res) => {

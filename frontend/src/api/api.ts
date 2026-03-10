@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useAlertStore } from "../hooks/useAlertStore";
+import { useAlertStore } from "../store/useAlertStore";
 
 export const api = axios.create({
   // VITE_API_BASE_URL이 있으면 그 값을 쓰고, 없으면 로컬 프록시용 "/api" 사용

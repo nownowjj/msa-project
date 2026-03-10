@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createArchive, deleteArchive, updateArchive } from '../api/archive';
 import type { ArchiveCreateRequest, ArchiveUpdateRequest } from '../types/archive';
-import { useAlertStore } from './useAlertStore';
+import { useAlertStore } from '../store/useAlertStore';
 
 export const useArchiveMutation = (onSuccessCallback?: () => void) => {
   const queryClient = useQueryClient();

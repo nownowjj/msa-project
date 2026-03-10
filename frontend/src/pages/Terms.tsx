@@ -1,12 +1,22 @@
-import BackButton from './BackButton';
+// import BackButton from './BackButton';
+import { useNavigate } from 'react-router-dom';
 import { LoginContainer, PageContainer } from './Login';
+import styled from 'styled-components';
 
 const Terms = () => {
+  const navigate = useNavigate();
+
   return (
     <PageContainer>
       <LoginContainer>
-        <BackButton></BackButton>
-        <h1 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px' }}>서비스 이용약관</h1>
+        <Header>
+          <BackButton onClick={()=> {navigate(-1)}} title="목록으로 돌아가기">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </BackButton>
+          <h2 >서비스 이용약관</h2>
+        </Header>
         
         <h3>제 1 조 (목적)</h3>
         <p>본 약관은 "MSA Project"에서 제공하는 서비스의 이용 조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.</p>
@@ -30,5 +40,23 @@ const Terms = () => {
     </PageContainer>
   );
 };
+
+export const Header = styled.header`
+  display:flex;
+  margin-bottom:15px;
+`
+export const BackButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 12px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  &:hover { color: #111827; }
+
+  display:flex;
+`;
 
 export default Terms;

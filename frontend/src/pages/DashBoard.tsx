@@ -8,7 +8,7 @@ import Sidebar from '../components/Layout/Sidebar';
 import SidePanel from '../components/Layout/SidePanel';
 import { FolderModal } from '../components/Modal/FolderModal';
 import type { ArchiveResponse } from '../types/archive';
-import { useSidebarStore } from '../hooks/useSidebarStore';
+import { useSidebarStore } from '../store/useSidebarStore';
 
 
 export interface SelectedFolder {
@@ -64,16 +64,21 @@ const DashBoard = () => {
         </>
     );
 };
+// const SearchContainer = styled.div<{$hideOn:boolean}>`
+//   flex: 1;
+//   max-width: 600px;
+//   position: relative;
+//   display: ${props => (props.$hideOn ? 'none' : 'block')};
 
-
-const MainContainer = styled.div`
+export const MainContainer = styled.div<{$hideOn:boolean}>`
     display: flex;
     margin-top: 68px;
     height: calc(100vh - 68px);
 
     @media (max-width: 768px) {
-        margin-top: 110px;
-        height: calc(100vh - 110px);
+        margin-top: ${props => (props.$hideOn ? '55px' : '110px')};
+        height: ${props => (props.$hideOn ? 'calc(100vh - 55px)' : 'calc(100vh - 110px)')};
+        transition: margin-top 0.2s ease, height 0.2s ease;
     }
 `
 

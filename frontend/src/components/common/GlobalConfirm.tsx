@@ -1,4 +1,4 @@
-import { useConfirmStore } from '../../hooks/useConfirmStore';
+import { useConfirmStore } from '../../store/useConfirmStore';
 import * as S from '../../types/ConfirmModal.styles';
 
 

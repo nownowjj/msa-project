@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { fetchAllFolder } from '../../api/folder';
-import { useFolderModalStore } from '../../hooks/useFolderModalStore';
+import { useFolderModalStore } from '../../store/useFolderModalStore';
 import { useFolderMutation } from '../../hooks/useFolderMutations';
 import type { FolderNavigationResponse } from '../../types/folder';
 import FolderSelect from '../Folder/FolderSelect';

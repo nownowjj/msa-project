@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useFolderModalStore } from "../../hooks/useFolderModalStore";
-import { useFolderStore } from "../../hooks/useFolderStore";
+import { useFolderModalStore } from "../../store/useFolderModalStore";
+import { useFolderStore } from "../../store/useFolderStore";
 import { useFolderMutation } from "../../hooks/useFolderMutations";
-import { useConfirmStore } from "../../hooks/useConfirmStore";
+import { useConfirmStore } from "../../store/useConfirmStore";
 import type { FolderNavigationResponse } from "../../types/folder";
 import styled, { css, keyframes } from "styled-components";
-import { useSearchStore } from "../../hooks/useSearchStore";
+import { useSearchStore } from "../../store/useSearchStore";
 
 const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -164,7 +164,7 @@ const CountEdit = styled.div`
   position:relative;
 `
 
-const FolderName = styled.span`
+export const FolderName = styled.span`
   font-weight:500;
   font-size:14px;
   flex:1;

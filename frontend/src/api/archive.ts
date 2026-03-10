@@ -61,6 +61,48 @@ export const fetchArchiveAiAnalyze = async (url: string):Promise<ArchiveAiAnalyz
     return data;
 }
 
+/**
+ * AI 요청 validate
+ * @param url 
+ * @returns msg 
+ */
+export const getUrlValidationError = (url: string | null | undefined): string | null => {
+  // 1. 빈 값 체크 (Presence Check)
+  if (!url || url.trim() === "") {
+    return "URL을 입력해 주세요.";
+  }
+
+  // 2. 형식 체크 (Protocol Check)
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    return "유효하지 않은 URL입니다.";
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+
+    // 3. 보안 체크 (XSS & Script Injection 방지)
+    if (url.toLowerCase().includes("javascript:") || url.includes("<script")) {
+      return "보안상 허용되지 않는 형식이 포함되어 있습니다.";
+    }
+
+    // 4. 도메인 정책 체크 (Blacklist)
+    // 크롤링을 명시적으로 막거나 AI 분석이 무의미한 도메인 차단
+    const forbiddenDomains = ["instagram.com", "facebook.com", "tiktok.com", "youtube.com"];
+    if (forbiddenDomains.some(domain => parsedUrl.hostname.includes(domain))) {
+      return "해당 사이트는 정책상 AI 분석이 불가능한 도메인입니다.";
+    }
+
+    // 5. 길이 제한 (DoS 방지)
+    if (url.length > 2000) {
+      return "URL 길이가 너무 깁니다.";
+    }
+
+  } catch (e) {
+    return "올바른 URL 형식이 아닙니다.";
+  }
+
+  return null; // 모든 검증 통과
+};
 
 /**
  * @param request 

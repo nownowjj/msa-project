@@ -1,12 +1,22 @@
-import BackButton from "./BackButton";
+import { useNavigate } from "react-router-dom";
 import { LoginContainer, PageContainer } from "./Login";
+import { BackButton, Header } from "./Terms";
 
 const Privacy = () => {
+  const navigate = useNavigate();
+
   return (
     <PageContainer>
       <LoginContainer>
-        <BackButton></BackButton>
-        <h1 style={{ borderBottom: '2px solid #eee', paddingBottom: '10px' }}>개인정보처리방침</h1>
+        <Header>
+          <BackButton onClick={()=> {navigate(-1)}} title="목록으로 돌아가기">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </BackButton>
+          <h2 >개인정보처리방침</h2>
+        </Header>
+
         <p>본 서비스(이하 '서비스')는 사용자의 개인정보를 중요시하며, 구글(Google) 로그인 서비스 제공을 위해 아래와 같이 최소한의 개인정보를 수집하고 이용합니다.</p>
 
         <h3>1. 수집하는 개인정보 항목</h3>

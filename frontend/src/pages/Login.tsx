@@ -1,13 +1,14 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import YoutubeConnectButton from '../components/Youtube/YoutubeConnectButton';
 import { GlobalAlert } from '../components/common/GlobalAlert';
 import AppIcon from '../components/common/LinkMintLogo';
 import { LoadingOverlay } from '../components/common/LoadingOverlay';
 import KakaoLoginButton from '../components/oauth/KakaoLoginButton';
-import { useAlertStore } from '../hooks/useAlertStore';
+import { useAlertStore } from '../store/useAlertStore';
 import { useOAuthLogin } from '../hooks/useOAuthLogin';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginPageProps {
 }
@@ -15,6 +16,9 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ }) => {
   const { showAlert } = useAlertStore();
   const { login: oAuthLogin } = useOAuthLogin();
+  const navigate = useNavigate();
+
+
   // 로딩 상태 관리
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -27,6 +31,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ }) => {
       setIsLoggingIn(false); // 실패 시 오버레이 제거하여 다시 버튼 누를 수 있게 함
     }
   };
+
+  useEffect(() => {
+      if (localStorage.getItem('token')) {
+          navigate('/board', { replace: true });
+      }
+  }, [navigate]);
 
   return (
     <PageContainer>

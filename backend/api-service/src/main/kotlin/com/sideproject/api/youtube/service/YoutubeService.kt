@@ -21,9 +21,6 @@ class YoutubeService (
     fun getPlayLists(): List<YoutubePlaylistDto> =
         youtubeClient.getMyPlaylists().items
 
-//    fun getPlayListItem(playlistId: String): List<YoutubePlaylistItemDto> =
-//        youtubeClient.getMyPlaylistItems(playlistId = playlistId).items
-
     fun getPlayListItem(playlistId: String): List<YoutubePlaylistItemDto> {
         val response = youtubeClient.getMyPlaylistItems(playlistId = playlistId)
 

@@ -1,13 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import styled, { css } from "styled-components";
-import { fetchArchiveAiAnalyze, fetchArchiveMetadata } from "../../api/archive";
+import { fetchArchiveAiAnalyze, fetchArchiveMetadata, getUrlValidationError } from "../../api/archive";
 import { fetchAllFolder, findDefaultFolder } from "../../api/folder";
 import { useArchiveMutation } from "../../hooks/useArchiveMutation";
 import type { ArchiveResponse } from "../../types/archive";
 import FolderSelect from "../Folder/FolderSelect";
-import { useFolderStore } from "../../hooks/useFolderStore";
-import { useConfirmStore } from "../../hooks/useConfirmStore";
+import { useFolderStore } from "../../store/useFolderStore";
+import { useConfirmStore } from "../../store/useConfirmStore";
+import { useAlertStore } from "../../store/useAlertStore";
 
 interface SidePanelProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
 
     const [summary, setSummary] = useState('');
     const [keywords, setKeywords] = useState<string[]>([]);
+
+    const { showAlert } = useAlertStore();
 
     // 폴더 목록 가져오기 (Sidebar와 동일한 캐시 데이터 공유)
     const { data: folders } = useQuery({
@@ -152,7 +155,17 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
         setUrl(data.url || '');
         setTitle(data.title || '');
         setThumbnail(data.thumbnailUrl || '');
-        setSelectedFolderId(data.folderId); // 기존 저장된 폴더 ID
+
+        // 유튜브를 위함.
+        if(data.id != 0){
+          setSelectedFolderId(data.folderId); // 기존 저장된 폴더 ID
+        }else{
+          const defaultFolder = findDefaultFolder(folders);
+          if (defaultFolder) {
+            setSelectedFolderId(defaultFolder.id);
+          }
+        }
+
         setSummary(data.aiSummary || '');
         setKeywords(data.keywords || []);
         lastFetchedUrl.current = data.url || '';
@@ -182,10 +195,13 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
 
     // 2. AI 생성 버튼 핸들러
     const handleAiAnalyze = () => {
-      if (!url) {
-        alert("분석할 URL이 없습니다.");
-        return;
-      }
+    // 통합 검증 함수 호출
+    const errorMessage = getUrlValidationError(url);
+
+    if (errorMessage) {
+      showAlert(errorMessage);
+      return;
+    }
       aiAnalyzeMutation.mutate(url);
     };
 
@@ -211,7 +227,7 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
         keywords: keywords.length > 0 ? keywords : null,
       };
 
-      if (data) {
+      if (data && data.id != 0) {
         // ✅ 수정 모드: PATCH 요청
         updateArchive({id: data.id, request: requestData });
       } else {
@@ -246,7 +262,9 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
     return (
     <SidePanelContainer isOpen={isOpen}>
       <PanelHeader>
-        <PanelTitle>아카이브 {data ? '수정' : '생성'}</PanelTitle>
+        <PanelTitle>
+          {(!data || data.id === 0) ? '아카이브 생성' : '아카이브 수정'}
+        </PanelTitle>
         <PanelCloseBtn onClick={onClose}>✕</PanelCloseBtn>
       </PanelHeader>
 
@@ -363,27 +381,36 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
         <FormGroup>
           <FormLabel>요약</FormLabel>
           <FormTextarea 
-            placeholder={aiAnalyzeMutation.isPending ? "AI가 내용을 분석하여 요약 중입니다..." : "AI 요약 정보가 표시됩니다"}
+            placeholder={
+              aiAnalyzeMutation.isPending ? 
+                "AI가 내용을 분석하여 요약 중입니다..." : 
+                (!data || data.id !== 0) ? "AI 요약 정보가 표시됩니다" : "요약 정보 입력하기"
+            }
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             disabled={aiAnalyzeMutation.isPending}
           />
           {/* 3. AI 버튼 상태 제어 */}
-          <AiButton 
-            onClick={handleAiAnalyze}
-            disabled={aiAnalyzeMutation.isPending || !url}
-            style={{ 
-              marginTop: '8px',
-              opacity: aiAnalyzeMutation.isPending ? 0.7 : 1,
-              cursor: aiAnalyzeMutation.isPending ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {aiAnalyzeMutation.isPending ? (
-              <>⏳ 분석 중...</>
-            ) : (
-              <>🔄 요약&키워드 AI {data ? '재생성' : '생성'}</>
-            )}
-          </AiButton>
+          
+          {(!data || data.id !== 0) &&
+            <AiButton 
+              onClick={handleAiAnalyze}
+              disabled={aiAnalyzeMutation.isPending}
+              style={{ 
+                marginTop: '8px',
+                opacity: aiAnalyzeMutation.isPending ? 0.7 : 1,
+                cursor: aiAnalyzeMutation.isPending ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {aiAnalyzeMutation.isPending ? (
+                <>⏳ 분석 중...</>
+              ) : (
+                <>🔄 요약&키워드 AI {data ? '재생성' : '생성'}</>
+              )}
+            </AiButton>
+          }
+          
+
         </FormGroup>
 
         <FormGroup>
@@ -403,9 +430,9 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
 
       <PanelFooter>
         <BtnSave onClick={handleSave} disabled={isSaving}>
-          {isSaving ? '저장 중...' : (data ? '변경사항 저장' : '저장')}
+          {isSaving ? '저장 중...' : (!data || data.id === 0) ? '아카이브 생성' : '아카이브 수정'}
         </BtnSave>
-        {data && (
+        {(data && data.id != 0 ) && (
         <BtnDelete 
           onClick={(e)=> handleDeleteInPanel(e,data.id)} disabled={isDeleting}>
                   🗑️

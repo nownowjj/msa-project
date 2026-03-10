@@ -1,4 +1,4 @@
-import { useAlertStore } from '../../hooks/useAlertStore';
+import { useAlertStore } from '../../store/useAlertStore';
 import * as S from '../../types/ConfirmModal.styles';
 
 export const GlobalAlert = () => {

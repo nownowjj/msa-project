@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import styled from 'styled-components';
 import type { ArchiveResponse } from '../../types/archive';
 import { useArchiveMutation } from '../../hooks/useArchiveMutation';
-import { useConfirmStore } from '../../hooks/useConfirmStore';
+import { useConfirmStore } from '../../store/useConfirmStore';
 
 
 interface ArchiveCardProps {

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { FolderCreateRequest, FolderUpdateRequest } from '../types/folder';
 import { createFolder, deleteFolder, updateFolder } from '../api/folder';
-import { useAlertStore } from './useAlertStore';
+import { useAlertStore } from '../store/useAlertStore';
 
 
 export const useFolderMutation = (onSuccessCallback?: () => void) => {
