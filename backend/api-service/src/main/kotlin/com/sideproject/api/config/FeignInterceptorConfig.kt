@@ -1,14 +1,25 @@
 package com.sideproject.api.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.sideproject.api.client.AuthServiceClient
 import com.sideproject.auth.dto.AuthUser
+import feign.Logger
 import feign.RequestInterceptor
+import feign.codec.ErrorDecoder
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 
-//@Configuration
 class FeignInterceptorConfig(private val authServiceClient: AuthServiceClient) {
+
+    @Bean
+    fun feignLoggerLevel(): Logger.Level {
+        return Logger.Level.FULL // Request/Response의 모든 Header와 Body를 로그에 남김
+    }
+
+    @Bean
+    fun errorDecoder(objectMapper: ObjectMapper): ErrorDecoder {
+        return YoutubeErrorDecoder(objectMapper)
+    }
 
     @Bean
     fun requestInterceptor(): RequestInterceptor {
@@ -32,4 +43,5 @@ class FeignInterceptorConfig(private val authServiceClient: AuthServiceClient) {
             }
         }
     }
+
 }

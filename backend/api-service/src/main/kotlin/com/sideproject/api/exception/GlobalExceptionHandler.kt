@@ -2,6 +2,7 @@ package com.sideproject.api.exception
 
 import com.sideproject.api.security.UnauthorizedException
 import feign.FeignException
+import feign.codec.DecodeException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -57,16 +58,37 @@ class GlobalExceptionHandler {
         )
     }
 
-    @ExceptionHandler(FeignException::class)
-    fun handleFeignException(e: FeignException): ResponseEntity<Map<String, Any>> {
-        log.error("Feign Client Error: status={}, message={}", e.status(), e.contentUTF8())
+    @ExceptionHandler(YoutubeApiException::class)
+    fun handleYoutubeApiException(e: YoutubeApiException): ResponseEntity<Map<String, Any>> {
+        log.error("YouTube 도메인 에러 발생: status={}, reason={}, message={}", e.status, e.errorReason, e.message)
 
-        val status = HttpStatus.valueOf(if (e.status() > 0) e.status() else 500)
-        return ResponseEntity.status(status).body(mapOf(
+        return ResponseEntity.status(e.status).body(mapOf(
             "timestamp" to LocalDateTime.now(),
-            "status" to status.value(),
-            "error" to "YouTube API 호출 중 오류가 발생했습니다.",
-            "details" to e.contentUTF8()
+            "domain" to "YOUTUBE",
+            "reason" to (e.errorReason ?: "UNKNOWN"),
+            "message" to e.message,
+            "status" to e.status
+        ))
+    }
+
+    @ExceptionHandler(FeignException::class)
+    fun handleGeneralFeignException(e: FeignException): ResponseEntity<Map<String, Any>> {
+        log.error("Feign Client 상세 에러 발생: Type={}, Status={}, Message={}",
+            e.javaClass.simpleName, e.status(), e.message)
+        log.error("Feign Error Root Cause: ", e.cause)
+
+        // 파싱 에러(DecodeException)인 경우 별도 처리
+        if (e is DecodeException) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mapOf(
+                "code" to "API_DATA_MISMATCH",
+                "message" to "외부 API 응답 데이터를 처리할 수 없습니다. (DTO 구조 확인 필요)",
+                "details" to (e.message ?: "")
+            ))
+        }
+
+        return ResponseEntity.status(if (e.status() > 0) e.status() else 500).body(mapOf(
+            "code" to "EXTERNAL_API_ERROR",
+            "message" to "외부 서비스 연결 중 오류가 발생했습니다."
         ))
     }
 }

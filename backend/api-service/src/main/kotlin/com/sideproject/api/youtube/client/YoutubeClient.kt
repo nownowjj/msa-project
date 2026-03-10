@@ -40,7 +40,6 @@ interface YoutubeClient {
     // 영상 댓글
     @GetMapping("/commentThreads")
     fun getMyVideoComments(
-//        @RequestHeader("Authorization") bearerToken: String,
         @RequestParam("part") part: String = "snippet",
         @RequestParam("videoId") videoId: String,
         @RequestParam("maxResults") maxResults: Int = 20
