@@ -2,7 +2,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import DashBoard from '../../pages/DashBoard';
 import LoginPage from '../../pages/Login';
 import MyPage from '../../pages/MyPage';
-import PlaylistDetailPage from '../../pages/PlaylistDetailPage';
 import Privacy from '../../pages/Privacy';
 import Terms from '../../pages/Terms';
 import MyPlayListPage from '../../pages/YoutubePlayListDashBoard';
@@ -29,7 +28,6 @@ const AppRouter = () => {
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="/me" element={<MyPage />} />
                 <Route path="/playlists" element={<MyPlayListPage />} />
-                <Route path="/playlists/:playlistId" element={<PlaylistDetailPage />} />
                 <Route path="/board" element={<DashBoard />} />
             </Route>
 
