@@ -16,10 +16,11 @@ interface YoutubeClient {
 
     // 재생 목록
     @GetMapping("/playlists")
-    fun getMyPlaylists(
+    fun getAllPlayLists(
         @RequestParam("part") part: String = "snippet,contentDetails",
         @RequestParam("mine") mine: Boolean = true,
-        @RequestParam("maxResults") maxResults: Int = 50
+        @RequestParam("maxResults") maxResults: Int = 50,
+        @RequestParam("pageToken") pageToken: String? = null
     ): YoutubeBaseResponse<YoutubePlaylistDto>
 
     // 재생 목록 상세 아이템

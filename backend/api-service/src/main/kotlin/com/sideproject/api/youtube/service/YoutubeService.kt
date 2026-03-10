@@ -18,8 +18,18 @@ class YoutubeService (
     private val log = LoggerFactory.getLogger(javaClass)
 
 
-    fun getPlayLists(): List<YoutubePlaylistDto> =
-        youtubeClient.getMyPlaylists().items
+    fun getAllPlayLists(): List<YoutubePlaylistDto> {
+        val allPlayLists = mutableListOf<YoutubePlaylistDto>()
+        var nextPageToken: String? = null
+
+        do{
+            val response = youtubeClient.getAllPlayLists(pageToken = nextPageToken)
+            allPlayLists.addAll(response.items)
+            nextPageToken = response.nextPageToken
+        }while (nextPageToken != null)
+
+        return allPlayLists
+    }
 
     fun getPlayListItem(playlistId: String): List<YoutubePlaylistItemDto> {
         val response = youtubeClient.getMyPlaylistItems(playlistId = playlistId)

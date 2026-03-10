@@ -39,8 +39,7 @@ class YoutubeController(
 
     @GetMapping("/playlist")
     fun getYoutubePlayLists(): ResponseEntity<Any>{
-        log.info("도착은 했다만")
-        return ResponseEntity.ok(youtubeService.getPlayLists())
+        return ResponseEntity.ok(youtubeService.getAllPlayLists())
     }
 
     @GetMapping("/playlist/items")
