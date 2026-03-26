@@ -51,8 +51,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-test")
     implementation(kotlin("stdlib-jdk8"))
 
-// Querydsl
+    // Querydsl
     implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+
+    // Spring AMQP (RabbitMQ)
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
 
     // 이제 'kapt'가 빨간 줄 없이 인식될 겁니다.
     kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
@@ -60,6 +63,8 @@ dependencies {
     // Jakarta 관련 설정 (Spring Boot 3.x 기준 필수)
     kapt("jakarta.annotation:jakarta.annotation-api")
     kapt("jakarta.persistence:jakarta.persistence-api")
+
+
 }
 
 // 5. QClass 생성 경로 설정 및 IDE 연동
