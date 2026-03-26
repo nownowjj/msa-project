@@ -6,6 +6,7 @@ import com.sideproject.api.archive.dto.FolderUpdateRequest
 import com.sideproject.api.archive.entity.Folder
 import com.sideproject.api.archive.repository.archive.ArchiveRepository
 import com.sideproject.api.archive.repository.archiveKeyword.ArchiveKeywordRepository
+import com.sideproject.api.archive.repository.folder.FolderMemberRepository
 import com.sideproject.api.archive.repository.folder.FolderRepository
 
 import org.slf4j.LoggerFactory
@@ -16,8 +17,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class FolderService (
     private val folderRepository: FolderRepository,
-    private val archiveKeywordRepository: ArchiveKeywordRepository,
-    private val archiveRepository: ArchiveRepository
+    private val archiveRepository: ArchiveRepository,
+    private val folderMemberRepository: FolderMemberRepository
 ){
     private val log = LoggerFactory.getLogger(FolderService::class.java)
 
@@ -232,5 +233,53 @@ class FolderService (
             folderRepository.save(defaultFolder)
             log.info("기본 폴더 생성 완료 - userId: $userId")
         }
+    }
+
+    @Transactional(readOnly = true)
+    fun getShareFolders(userId: Long): List<FolderTreeResponse> {
+        // 1. 내가 멤버인 공유 정보 조회 (ID 기반)
+        val folderMembers = folderMemberRepository.findAllByUserId(userId)
+        if (folderMembers.isEmpty()) return emptyList()
+
+        // 2. 루트 폴더 ID 및 권한 매핑
+        val sharedRootIds = folderMembers.map { it.folderId }
+        val roleMap = folderMembers.associate { it.folderId to it.role }
+
+        // 3. 루트 및 하위 폴더들을 모두 조회 (기존의 findAllByIdInOrParentIdIn 활용)
+        val allRelatedFolders = folderRepository.findAllByIdInOrParentIdIn(sharedRootIds, sharedRootIds)
+        val allIds = allRelatedFolders.map { it.id!! }
+
+        // 4. [기존 DTO 활용] 폴더 정보와 아카이브 개수를 한꺼번에 조회
+        val folderCountDtos = archiveRepository.findAllFolderCountsByFolderIds(allIds)
+
+        // 5. 트리 조립을 위한 DTO Map 생성 (FolderTreeResponse 활용)
+        val folderMap = folderCountDtos.associate { dto ->
+            dto.folder.id!! to FolderTreeResponse(
+                id = dto.folder.id!!,
+                name = dto.folder.name,
+                depth = dto.folder.depth,
+                parentId = dto.folder.parentId,
+                sortOrder = dto.folder.sortOrder,
+                archiveCount = dto.archiveCount,
+                // accessRole 필드가 FolderTreeResponse에 없다면 추가 권장
+                // accessRole = roleMap[dto.folder.id]
+            )
+        }
+
+        // 6. 트리 구조 조립 및 정렬
+        val sharedRoots = mutableListOf<FolderTreeResponse>()
+
+        // sortOrder 기준 정렬 후 조립
+        folderMap.values.sortedBy { it.sortOrder }.forEach { dto ->
+            if (sharedRootIds.contains(dto.id)) {
+                sharedRoots.add(dto)
+            } else {
+                // 자식 폴더 조립 (부모의 권한을 상속받도록 처리 가능)
+                val parentDto = folderMap[dto.parentId]
+                parentDto?.children?.add(dto)
+            }
+        }
+
+        return sharedRoots.sortedBy { it.sortOrder }
     }
 }

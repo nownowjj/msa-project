@@ -28,7 +28,8 @@ class SecurityConfig(
                     .requestMatchers(
                         "/api/permitAll/**", "permitAll/**",
                         "/api/oauth/**", "oauth/**",
-                        "/api/auth/**", "auth/**"
+                        "/api/auth/**", "auth/**",
+                        "/api/share/public/**"
                     ).permitAll()
                     .anyRequest().authenticated()
             }
