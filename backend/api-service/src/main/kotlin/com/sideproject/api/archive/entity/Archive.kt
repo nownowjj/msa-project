@@ -24,7 +24,7 @@ class Archive(
     @Column(name = "folder_id", nullable = false)
     var folderId: Long,
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, columnDefinition = "TEXT")
     val url: String,
 
     @Column(name = "use_yn", nullable = false, length = 1)
