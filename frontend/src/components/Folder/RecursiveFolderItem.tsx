@@ -1,16 +1,19 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { useFolderModalStore } from "../../store/useFolderModalStore";
-import { useFolderStore } from "../../store/useFolderStore";
+import styled, { css, keyframes } from "styled-components";
+import { shareFolder, type makeShareFolderResponse, type ShareRequest } from "../../api/share";
 import { useFolderMutation } from "../../hooks/useFolderMutations";
 import { useConfirmStore } from "../../store/useConfirmStore";
-import type { FolderNavigationResponse } from "../../types/folder";
-import styled, { css, keyframes } from "styled-components";
+import { useFolderModalStore } from "../../store/useFolderModalStore";
+import { useFolderStore } from "../../store/useFolderStore";
 import { useSearchStore } from "../../store/useSearchStore";
+import type { FolderNavigationResponse } from "../../types/folder";
 
 const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
+  const queryClient = useQueryClient();
   const hasChildren = folder.children && folder.children.length > 0;
   const confirm = useConfirmStore((state) => state.confirm); // 폴더 삭제 confirm 
   
@@ -66,6 +69,25 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
     openAddSubFolderModal(folder.id);
   };
 
+  // 2. useMutation 타입 적용
+  const { mutate: generateLink } = useMutation<makeShareFolderResponse, Error, ShareRequest>({
+    mutationFn: ({ folderId, role }) => shareFolder(folderId, role),
+    onSuccess: (data) => {
+      // ✅ 이제 data와 variables(인자)에 접근해도 에러가 나지 않습니다.
+      navigator.clipboard.writeText(data.shareUrl);
+      queryClient.invalidateQueries({ queryKey: ['shareFolders'] })
+      alert(`[${data.role}] 링크가 복사되었습니다!`);
+    },
+    onError: (error) => {
+      console.error("공유 링크 생성 실패:", error);
+    }
+  });
+
+  // 3. 호출부 (이제 타입 추론이 정상적으로 작동합니다)
+  const handleShareClick = (id: number, selectedRole: 'VIEWER' | 'EDITOR') => {
+    generateLink({ folderId: id, role: selectedRole });
+  };
+  
   return (
     <FolderWrapper>
       <FolderRow
@@ -115,13 +137,23 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
               </MenuItem>
             }
 
+            {folder.sortOrder !== 0 && 
+              <MenuItem onClick={(e) => {
+                e.stopPropagation();
+                handleShareClick(folder.id , "VIEWER");
+              }}>
+                <MenuIcon>🔗</MenuIcon>
+                <span>공유하기</span>
+              </MenuItem>
+            }
+
 
             {folder.sortOrder !== 0 && 
               <>
                 <MenuDivider />
 
                 <MenuItem variant="danger"
-                  onClick={handleDelete}
+                  onClick={() => generateLink({ folderId: folder.id, role: "VIEWER" })}
                 >
                   <MenuIcon>🗑️</MenuIcon>
                   <span>삭제</span>

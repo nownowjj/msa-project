@@ -40,5 +40,5 @@ class FolderMember(
 )
 
 enum class FolderRole {
-    VIEWER, EDITOR
+    VIEWER, EDITOR , OWNER
 }

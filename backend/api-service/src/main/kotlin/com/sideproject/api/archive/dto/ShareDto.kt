@@ -12,7 +12,8 @@ data class ShareFolderRequest(
 data class ShareFolderResponse(
     val shareToken: String,
     val shareUrl: String,
-    val role: FolderRole
+    val role: FolderRole,
+    val folderName: String
 )
 
 data class SharedFolderResponse(

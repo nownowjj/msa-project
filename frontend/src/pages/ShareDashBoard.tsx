@@ -1,19 +1,19 @@
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { api } from "../api/api";
+import { fetchSharedArchives } from "../api/share";
 import { GlobalAlert } from "../components/common/GlobalAlert";
 import ShareContent from "../components/Layout/share/ShareContent";
 import ShareHeader from "../components/Layout/share/ShareHeader";
 import ShareSidebar from "../components/Layout/share/ShareSidebar";
 import SidePanel from "../components/Layout/SidePanel";
+import { useAlertStore } from "../store/useAlertStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { useSidebarStore } from "../store/useSidebarStore";
 import type { ArchiveResponse } from "../types/archive";
 import { MainContainer } from "./DashBoard";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { fetchSharedArchives } from "../api/share";
-import { useAuthStore } from "../store/useAuthStore";
-import { api } from "../api/api";
-import { useAlertStore } from "../store/useAlertStore";
 
 const ShareDashBoard = () => {
     const { token } = useParams<{ token: string }>(); // URL에서 토큰 추출
@@ -24,7 +24,7 @@ const ShareDashBoard = () => {
     const currentId = useAuthStore((state) => state.user?.id);
     const { showAlert } = useAlertStore();
     const { isOpen, closeSidebar } = useSidebarStore();
-
+    const queryClient = useQueryClient();
 
     // 2. 수정 버튼 클릭 시 실행될 핸들러
     const handleEdit = (archive: ArchiveResponse) => {
@@ -70,6 +70,7 @@ const ShareDashBoard = () => {
             
             // 3. 성공 알림 후 본인 대시보드로 이동
             await showAlert('공유 폴더가 내 보관함에 추가되었습니다.');
+            queryClient.invalidateQueries({ queryKey: ['shareFolders'] })
             navigate('/dashboard', { replace: true });
             
         } catch (error: any) {

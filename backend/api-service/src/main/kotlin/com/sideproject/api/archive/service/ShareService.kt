@@ -28,29 +28,42 @@ class ShareService(
     fun generateShareLink(userId: Long, request: ShareFolderRequest): ShareFolderResponse {
         val folder = folderRepository.findById(request.folderId)
             .orElseThrow { throw IllegalArgumentException("폴더를 찾을 수 없습니다.") }
-
+        // 1. 소유권 확인
         if (folder.userId != userId) throw IllegalArgumentException("폴더 공유 권한이 없습니다.")
 
-        // 권한별 기존 토큰 확인
+        // 2. 권한별 기존 토큰 확인
         val existingToken = when (request.role) {
             FolderRole.VIEWER -> folder.viewShareToken
             FolderRole.EDITOR -> folder.editShareToken
             else -> null
         }
 
-        // 새 토큰 생성 시 접두어 추가 (v_ 는 view, e_ 는 edit)
-        val prefix = if (request.role == FolderRole.EDITOR) "e_" else "v_"
-        val newToken = prefix + UUID.randomUUID().toString().replace("-", "")
+        // 3. 토큰 결정 (기존 것 혹은 새로 생성)
+        val token = existingToken ?: run {
+            val prefix = if (request.role == FolderRole.EDITOR) "e_" else "v_"
+            val generated = prefix + UUID.randomUUID().toString().replace("-", "")
+            folder.enableSharing(generated, request.role) // 엔티티 업데이트
+            generated
+        }
 
-        val token = existingToken ?: newToken
-
-        // 엔티티 업데이트
-        folder.enableSharing(token, request.role)
+        // 💡 [핵심 추가]: 폴더 생성자를 해당 권한의 멤버로 등록
+        // 이미 멤버로 등록되어 있는지 확인 후 없으면 추가 (중복 방지)
+        val isAlreadyMember = folderMemberRepository.existsByFolderIdAndUserId(folder.id!!, userId)
+        if (!isAlreadyMember) {
+            folderMemberRepository.save(
+                FolderMember(
+                    folderId = folder.id!!,
+                    userId = userId,
+                    role = FolderRole.OWNER // 링크를 만든 사람의 권한을 설정 (보통 OWNER이나 여기선 요청된 role 적용)
+                )
+            )
+        }
 
         return ShareFolderResponse(
             shareToken = token,
-            shareUrl = "https://link-mint.com/s/$token",
-            role = request.role
+            shareUrl = "http://link-mint.vercel.app/share/$token",
+            role = request.role,
+            folderName = folder.name
         )
     }
 
