@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Header from '../components/Layout/Header';
-import YoutubeContent from '../components/Layout/YoutubeContent';
-import YoutubeSidebar from '../components/Layout/YoutubeSidebar';
+import YoutubeContent from '../components/Layout/youtube/YoutubeContent';
+import YoutubeSidebar from '../components/Layout/youtube/YoutubeSidebar';
 import { useSidebarStore } from '../store/useSidebarStore';
 import { MainContainer } from './DashBoard';
 import VideoModal from '../components/Modal/VideoModal';

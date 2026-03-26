@@ -8,6 +8,8 @@ import com.sideproject.api.archive.entity.ArchiveKeyword
 import com.sideproject.api.archive.entity.Keyword
 import com.sideproject.api.archive.repository.archive.ArchiveRepository
 import com.sideproject.api.archive.repository.archiveKeyword.ArchiveKeywordRepository
+import com.sideproject.api.archive.repository.folder.FolderMemberRepository
+import com.sideproject.api.archive.repository.folder.FolderRepository
 import com.sideproject.api.archive.repository.keyword.KeywordRepository
 import jakarta.persistence.EntityManager
 import jakarta.persistence.EntityNotFoundException
@@ -23,16 +25,34 @@ class ArchiveService(
     private val archiveRepository: ArchiveRepository,
     private val keywordRepository: KeywordRepository,
     private val archiveKeywordRepository: ArchiveKeywordRepository,
-    private val scraperService:ScraperService,
-    private val entityManager: EntityManager,
+    private val folderRepository: FolderRepository,
+    private val folderMemberRepository: FolderMemberRepository,
     private val redisTemplate: RedisTemplate<String, Any>
 ) {
     private val logger = LoggerFactory.getLogger(ArchiveService::class.java)
 
     @Transactional(readOnly = true)
     fun getArchives(userId: Long, folderId: Long?, pageable: Pageable): Page<ArchiveResponse> {
-        // 1. 아카이브 목록 페이징 조회 (폴더 ID가 null이면 전체 조회)
-        val archivePage = archiveRepository.findArchivesPaging(userId, folderId, pageable)
+        // ✅ 케이스 분류 및 권한 검증
+        val archivePage = when {
+            // 케이스 1: folderId가 없는 경우 (본인의 모든 아카이브 조회)
+            folderId == null -> {
+                archiveRepository.findAllByUserIdAndUseYn(userId, "Y",pageable)
+            }
+
+            // 케이스 2 & 3: 특정 폴더 진입 시
+            else -> {
+                val isOwner = folderRepository.existsByIdAndUserId(folderId, userId)
+                val isMember = folderMemberRepository.existsByFolderIdAndUserId(folderId, userId)
+
+                if (isOwner || isMember) {
+                    // 권한이 있다면 해당 폴더의 모든 아카이브 조회 (userId 조건 제외)
+                    archiveRepository.findAllByFolderIdAndUseYn(folderId, "Y",pageable)
+                } else {
+                    throw EntityNotFoundException("해당 아카이브가 존재하지 않습니다.")
+                }
+            }
+        }
 
         if (archivePage.isEmpty) return Page.empty()
 
@@ -54,20 +74,6 @@ class ArchiveService(
             ArchiveResponse.from(archive, keywordsForThisArchive) // 오버로딩된 from 사용
         }
     }
-
-//    @Transactional(readOnly = true)
-//    // 사용자 전체 조회
-//    fun getAllArchives(userId: Long): List<ArchiveResponse> {
-//        val archives = archiveRepository.findAllByUserIdOrderByCreatedAtDesc(userId)
-//        return archives.map { ArchiveResponse.from(it) }
-//    }
-//
-//    @Transactional(readOnly = true)
-//    // 사용자 폴더별 조회
-//    fun getFolderArchive(userId: Long , folderId :Long): List<ArchiveResponse> {
-//        val archives = archiveRepository.findAllByUserIdAndFolderIdOrderByCreatedAtDesc(userId , folderId)
-//        return archives.map { ArchiveResponse.from(it) }
-//    }
 
     // Archive 생성
     @Transactional
@@ -136,7 +142,8 @@ class ArchiveService(
     /** 3. 아카이브 삭제 */
     @Transactional
     fun deleteArchive(archiveId: Long, userId: Long): Long {
-        val archive = archiveRepository.findByIdAndUserId(archiveId,userId)
+        // 1. 아카이브 존재 확인
+        val archive = archiveRepository.findByIdAndUseYn(archiveId,"Y")
             ?: throw EntityNotFoundException("해당 아카이브가 존재하지 않습니다.")
 
         //아카이브와 연결된 모든 매핑 정보를 지움.

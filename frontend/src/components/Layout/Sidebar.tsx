@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { fetchAllFolder } from '../../api/folder';
+import { fetchAllFolder, fetchAllShareFolder } from '../../api/folder';
 import { useFolderModalStore } from '../../store/useFolderModalStore';
 import { useFolderStore } from '../../store/useFolderStore';
 import { useSearchStore } from '../../store/useSearchStore';
@@ -10,6 +10,7 @@ import UserProfile from '../common/UserProfile';
 import RecursiveFolderItem from '../Folder/RecursiveFolderItem';
 import { Title } from './Header';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const Sidebar = () => {
   const { openCreateModal } = useFolderModalStore();
@@ -17,6 +18,7 @@ const Sidebar = () => {
   const { clearSearch } = useSearchStore();
   const { isOpen } = useSidebarStore();
   const navigate = useNavigate();
+  const name = useAuthStore((state) => state.user?.name);
 
   const { data: folders ,isLoading } = useQuery({
       queryKey: ['folders'],
@@ -29,6 +31,19 @@ const Sidebar = () => {
       retryDelay: 500, // 0.5초 대기 후 재시도
   });
 
+
+  const { data: shareFolders ,isLoading:isShareLoading } = useQuery({
+    queryKey: ['shareFolders'],
+    queryFn: fetchAllShareFolder,
+    // 데이터가 비어있다면(회원가입 직후) 최대 3번까지 재시도
+    retry: (failureCount, error) => {
+        if (folders?.length === 0 && failureCount < 2) return true;
+        return false;
+    },
+    retryDelay: 500, // 0.5초 대기 후 재시도
+  });
+
+
   return (
     <SidebarContainer $isOpen={isOpen}>
 
@@ -39,7 +54,7 @@ const Sidebar = () => {
         </Row>
         <Row>
           <UserProfile children={'U'} size={30}/>
-          <Title>U</Title>
+          <Title>{name}</Title>
         </Row>
       </MoblieSection>
 
@@ -65,6 +80,21 @@ const Sidebar = () => {
           <LoadingText>폴더 불러오는 중...</LoadingText>
         ) : (
           folders?.map((folder) => (
+            <RecursiveFolderItem
+              key={folder.id}
+              folder={folder}
+            />
+          ))
+        )}
+      </Section>
+
+
+      <Section $isMaxHeight={true}>
+        <SectionTitle>공유 폴더</SectionTitle>
+        {isShareLoading ? (
+          <LoadingText>공유 폴더 불러오는 중...</LoadingText>
+        ) : (
+          shareFolders?.map((folder) => (
             <RecursiveFolderItem
               key={folder.id}
               folder={folder}
@@ -129,14 +159,14 @@ const FolderEditBtn = styled.button`
 `
 
 const Section = styled.div<{ $isMaxHeight?: boolean }>`
-  max-height: ${props => (props.$isMaxHeight ? '550px;' : 'none;')};
-  min-height: ${props => (props.$isMaxHeight ? '550px;' : 'none;')};
+  max-height: ${props => (props.$isMaxHeight ? '280px;' : 'none;')};
+  // min-height: ${props => (props.$isMaxHeight ? '250px;' : 'none;')};
   margin-bottom: 24px;
   overflow-y: auto; /* scroll 대신 auto를 권장합니다 (필요할 때만 노출) */
   /* 모바일 View (768px 이하) 대응 */
   @media (max-width: 768px) {
-    max-height: ${props => (props.$isMaxHeight ? '250px' : 'none')};
-    min-height: ${props => (props.$isMaxHeight ? '250px' : 'none')};
+    max-height: ${props => (props.$isMaxHeight ? '200px' : 'none')};
+    // min-height: ${props => (props.$isMaxHeight ? '200px' : 'none')};
   }
 `;
 

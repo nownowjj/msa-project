@@ -70,7 +70,7 @@ const DashBoard = () => {
 //   position: relative;
 //   display: ${props => (props.$hideOn ? 'none' : 'block')};
 
-export const MainContainer = styled.div<{$hideOn:boolean}>`
+export const MainContainer = styled.div<{$hideOn?:boolean}>`
     display: flex;
     margin-top: 68px;
     height: calc(100vh - 68px);

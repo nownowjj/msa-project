@@ -7,6 +7,7 @@ import Terms from '../../pages/Terms';
 import MyPlayListPage from '../../pages/YoutubePlayListDashBoard';
 import KakaoCallback from '../oauth/KakaoCallback';
 import ProtectedRoute from './ProtectedRoute';
+import ShareDashBoard from '../../pages/ShareDashBoard';
 
 
 // 페이지 컴포넌트들...
@@ -19,6 +20,7 @@ const AppRouter = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/share/:token" element={<ShareDashBoard />} />
             <Route path="/oauth/callback/kakao" element={<KakaoCallback />} />
 
             {/* 기본 경로 설정 */}

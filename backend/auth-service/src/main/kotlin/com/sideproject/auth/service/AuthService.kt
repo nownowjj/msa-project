@@ -1,6 +1,5 @@
 package com.sideproject.auth.service
 
-import com.sideproject.auth.dto.SocialUserResponse
 import com.sideproject.auth.entity.User
 import com.sideproject.auth.jwt.JwtProvider
 import com.sideproject.auth.repository.UserRepository
@@ -33,7 +32,9 @@ class AuthService(
             accessToken = accessToken,
             userId = result.user.id!!,
             isNewUser = result.isNewUser,
-            message = result.message // 컨트롤러를 통해 프론트에 전달됨
+            message = result.message, // 컨트롤러를 통해 프론트에 전달됨
+            profile = result.user.picture,
+            name = result.user.name
         )
     }
 

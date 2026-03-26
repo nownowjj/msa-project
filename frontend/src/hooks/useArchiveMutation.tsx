@@ -12,9 +12,9 @@ export const useArchiveMutation = (onSuccessCallback?: () => void) => {
     // 1. 무효화 작업을 await로 기다리거나 프로미스를 보장
     queryClient.invalidateQueries({ queryKey: ['archives'] }),
     queryClient.invalidateQueries({ queryKey: ['folders'] })
+    queryClient.invalidateQueries({ queryKey: ['shareFolders'] })
     
-
-     await showAlert(message);
+    await showAlert(message);
 
     if (onSuccessCallback) onSuccessCallback();
   };

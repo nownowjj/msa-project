@@ -12,7 +12,7 @@ export const useFolderMutation = (onSuccessCallback?: () => void) => {
   const handleSuccess = async (message: string) => {
     // 1. 폴더 목록 쿼리 무효화 (await를 사용하여 데이터 갱신 보장)
     await queryClient.invalidateQueries({ queryKey: ['folders'] });
-
+    queryClient.invalidateQueries({ queryKey: ['archives'] }),
     await showAlert(message);
 
     if (onSuccessCallback) onSuccessCallback();

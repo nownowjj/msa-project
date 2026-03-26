@@ -21,6 +21,14 @@ export const fetchAllFolder = async ():Promise<FolderNavigationResponse[]> =>{
     return data;
 }
 
+/**
+ * 
+ * @returns Folder
+ */
+export const fetchAllShareFolder = async ():Promise<FolderNavigationResponse[]> =>{
+    const {data} = await api.get<FolderNavigationResponse[]>('/folder/share');
+    return data;
+}
 
 /**
  * @param request 

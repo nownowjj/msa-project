@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import styled, { keyframes } from "styled-components";
-import { fetchMyPlaylists } from "../../api/youtube";
-import { useYoutubeStore } from "../../store/useYoutubeStore";
-import YoutubeCard from "../Archive/YoutubeCard";
+import { fetchMyPlaylists } from "../../../api/youtube";
+import { useYoutubeStore } from "../../../store/useYoutubeStore";
+import YoutubeCard from "../../Archive/YoutubeCard";
 
 const YoutubeContent = ({ onEditClick }: { onEditClick: (item: any) => void }) => {
 

@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { fetchMyPlaylists } from '../../api/youtube';
-import { useSidebarStore } from '../../store/useSidebarStore';
-import { useYoutubeStore } from '../../store/useYoutubeStore';
-import AppIcon from '../common/LinkMintLogo';
-import UserProfile from '../common/UserProfile';
-import { Title } from './Header';
-import { FolderName } from '../Folder/RecursiveFolderItem';
+import { fetchMyPlaylists } from '../../../api/youtube';
+import { useSidebarStore } from '../../../store/useSidebarStore';
+import { useYoutubeStore } from '../../../store/useYoutubeStore';
+import AppIcon from '../../common/LinkMintLogo';
+import UserProfile from '../../common/UserProfile';
+import { Title } from '../Header';
+import { FolderName } from '../../Folder/RecursiveFolderItem';
 
 const YoutubeSidebar = () => {
     const { selectedPlaylistId, selectPlaylist, resetToAll } = useYoutubeStore();

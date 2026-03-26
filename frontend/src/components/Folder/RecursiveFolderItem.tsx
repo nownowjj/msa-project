@@ -78,7 +78,7 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
         }
       >
         <div className="left-section">
-          <ToggleButton onClick={handleToggle} visible={hasChildren}>
+          <ToggleButton onClick={handleToggle} $visible={hasChildren}>
             {isExpanded ? '▾' : '▸'}
           </ToggleButton>
           <span className="icon">{isExpanded ? '📂' : '📁'}</span>
@@ -156,7 +156,7 @@ const ChildrenContainer = styled.div`
   // padding-left:10px;
 `;
 
-const CountEdit = styled.div`
+export const CountEdit = styled.div`
   display:flex;
   align-items: center;
   justify-content: center;
@@ -238,8 +238,8 @@ const FolderRow = styled.div<{ active: boolean; depth: number }>`
   }
 `;
 
-const ToggleButton = styled.button<{ visible: boolean }>`
-  visibility: ${props => props.visible ? 'visible' : 'hidden'};
+export const ToggleButton = styled.button<{ $visible: boolean }>`
+  visibility: ${props => props.$visible ? 'visible' : 'hidden'};
   background: none;
   border: none;
   cursor: pointer;

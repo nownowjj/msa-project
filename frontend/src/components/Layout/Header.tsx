@@ -9,6 +9,7 @@ import { useFolderStore } from "../../store/useFolderStore";
 import AppIcon from "../common/LinkMintLogo";
 import { useSidebarStore } from "../../store/useSidebarStore";
 import UserProfile from "../common/UserProfile";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const Header = ({ onAddClick , hideOn }: { onAddClick: () => void , hideOn?: boolean  }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,6 +20,7 @@ const Header = ({ onAddClick , hideOn }: { onAddClick: () => void , hideOn?: boo
   const queryClient = useQueryClient();
   const { resetActiveFolder } = useFolderStore();
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+  const { logout } = useAuthStore(); // ✅ Zustand logout 액션 가져오기
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -48,9 +50,8 @@ const Header = ({ onAddClick , hideOn }: { onAddClick: () => void , hideOn?: boo
 
     if (isConfirmed) {
       queryClient.clear();
-      localStorage.removeItem('token');
+      logout(); 
       await showAlert('로그아웃 되었습니다.');
-
       navigate('/login', { replace: true });
     }
   };
@@ -246,14 +247,14 @@ const SearchIcon = styled.span`
   }
 `;
 
-const HeaderActions = styled.div`
+export const HeaderActions = styled.div`
   display: flex;
   gap: 12px;
   align-items: center;
   position: relative;
 `;
 
-const PrimaryButton = styled.button<{$hideOn:boolean}>`
+export const PrimaryButton = styled.button<{$hideOn?:boolean}>`
   height: 44px;
   padding: 0 24px;
   background: #2563eb; /* var(--primary) */

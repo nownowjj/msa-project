@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styled, { css } from "styled-components";
 import { fetchArchiveAiAnalyze, fetchArchiveMetadata, getUrlValidationError } from "../../api/archive";
-import { fetchAllFolder, findDefaultFolder } from "../../api/folder";
+import { fetchAllFolder, fetchAllShareFolder, findDefaultFolder } from "../../api/folder";
 import { useArchiveMutation } from "../../hooks/useArchiveMutation";
 import type { ArchiveResponse } from "../../types/archive";
 import FolderSelect from "../Folder/FolderSelect";
@@ -32,11 +32,28 @@ const SidePanel = ({ isOpen, onClose, data }: SidePanelProps) => {
     const { showAlert } = useAlertStore();
 
     // 폴더 목록 가져오기 (Sidebar와 동일한 캐시 데이터 공유)
-    const { data: folders } = useQuery({
+    const { data: myFolders } = useQuery({
         queryKey: ['folders'],
         queryFn: fetchAllFolder,
     });
 
+
+    const { data: shareFolders } = useQuery({
+      queryKey: ['shareFolders'],
+      queryFn: fetchAllShareFolder,
+    });
+
+    // ✅ 1. 두 데이터 소스를 하나로 합치기 (useMemo 활용)
+    const folders = useMemo(() => {
+      if (!myFolders && !shareFolders) return [];
+      
+      // 내 폴더와 공유 폴더를 합칩니다.
+      // 필요하다면 여기서 '내 폴더', '공유 폴더' 구분을 위한 프로퍼티를 추가할 수 있습니다.
+      const _myFolders = myFolders || [];
+      const shared = shareFolders || [];
+
+      return [..._myFolders, ...shared];
+    }, [myFolders, shareFolders]); // 두 쿼리 결과가 변동될 때마다 실행됨
 
 
     // 1. AI 분석을 위한 Mutation

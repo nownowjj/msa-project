@@ -3,8 +3,11 @@ package com.sideproject.api.archive.controller
 import com.sideproject.api.archive.dto.FolderCreateRequest
 import com.sideproject.api.archive.dto.FolderTreeResponse
 import com.sideproject.api.archive.dto.FolderUpdateRequest
+import com.sideproject.api.archive.dto.ShareFolderRequest
+import com.sideproject.api.archive.dto.ShareFolderResponse
 import com.sideproject.api.archive.service.FolderService
 import com.sideproject.auth.dto.AuthUser
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -52,5 +55,10 @@ class FolderController (
         @PathVariable folderId: Long
     ) {
         folderService.deleteFolder(user.id, folderId)
+    }
+
+    @GetMapping("/share")
+    fun getShareFolders(@AuthenticationPrincipal user: AuthUser): List<FolderTreeResponse> {
+        return folderService.getShareFolders(user.id)
     }
 }

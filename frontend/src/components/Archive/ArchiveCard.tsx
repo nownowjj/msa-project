@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import type { ArchiveResponse } from '../../types/archive';
 import { useArchiveMutation } from '../../hooks/useArchiveMutation';
 import { useConfirmStore } from '../../store/useConfirmStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 
 interface ArchiveCardProps {
@@ -12,6 +13,8 @@ interface ArchiveCardProps {
 }
 
 const ArchiveCard = ({ item, onEdit, onMove }: ArchiveCardProps) => {
+  // const currentId = useAuthStore((state) => state.user?.id);
+
   // 도메인 추출 로직 안전하게 처리
   const getHostname = (url: string) => {
     try {
@@ -24,7 +27,7 @@ const ArchiveCard = ({ item, onEdit, onMove }: ArchiveCardProps) => {
   const { deleteArchive, isDeleting } = useArchiveMutation();
   const confirm = useConfirmStore((state) => state.confirm);
 
-  // 폴더 삭제
+  // 아카이브 삭제
   const handleDelete = async (e: React.MouseEvent ,item: ArchiveResponse) => {
     e.stopPropagation();
     const isConfirmed = await confirm({
