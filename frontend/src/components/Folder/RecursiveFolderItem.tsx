@@ -87,7 +87,8 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
   const handleShareClick = (id: number, selectedRole: 'VIEWER' | 'EDITOR') => {
     generateLink({ folderId: id, role: selectedRole });
   };
-  
+
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   return (
     <FolderWrapper>
       <FolderRow
@@ -113,11 +114,16 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
           <FolderEditBtn
             onClick={(e) => {
             e.stopPropagation(); // 부모 Row로 이벤트가 퍼지는 것을 막음
+            const rect = e.currentTarget.getBoundingClientRect(); // 버튼 위치 계산
+            setMenuPosition({
+              top: rect.bottom + 5, // 버튼 바로 아래
+              left: rect.left - 150, // 메뉴 너비만큼 왼쪽으로 보정
+            });
             setIsMenuOpen(!isMenuOpen);
           }}
           >⋯</FolderEditBtn>
 
-          <DropdownMenu isOpen={isMenuOpen}>
+          <DropdownMenu isOpen={isMenuOpen} $left={menuPosition.left} $top={menuPosition.top}>
             {folder.sortOrder !== 0 && 
               <MenuItem onClick={(e) => {
                 e.stopPropagation();
@@ -153,7 +159,7 @@ const RecursiveFolderItem = ({folder}: {folder: FolderNavigationResponse}) => {
                 <MenuDivider />
 
                 <MenuItem variant="danger"
-                  onClick={() => generateLink({ folderId: folder.id, role: "VIEWER" })}
+                    onClick={handleDelete}
                 >
                   <MenuIcon>🗑️</MenuIcon>
                   <span>삭제</span>
@@ -291,11 +297,11 @@ const slideDown = keyframes`
   }
 `;
 
-const DropdownMenu = styled.div<{ isOpen: boolean }>`
+const DropdownMenu = styled.div<{ isOpen: boolean; $top: number; $left: number }>`
   display: ${props => (props.isOpen ? 'block' : 'none')};
-  position: absolute;
-  top: 100%;
-  right: 0;
+  // position: absolute;
+  // top: 100%;
+  // right: 0;
   margin-top: 4px;
   min-width: 180px;
   background: #FFFFFF;
@@ -305,7 +311,14 @@ const DropdownMenu = styled.div<{ isOpen: boolean }>`
   padding: 6px;
   z-index: 1000;
   animation: ${slideDown} 0.15s ease-out;
+
+  position: fixed; /* absolute 대신 fixed 사용 */
+  top: ${props => props.$top}px;
+  left: ${props => props.$left}px;
+  z-index: 9999; /* 최상위 레이어 보장 */
 `;
+
+
 
 const MenuItem = styled.button<{ variant?: 'danger' }>`
   width: 100%;

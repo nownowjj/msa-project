@@ -52,10 +52,10 @@ const Sidebar = () => {
           <AppIcon size={30}/>
           <Title>Link Mint</Title>
         </Row>
-        <Row>
+        {/* <Row>
           <UserProfile children={'U'} size={30}/>
           <Title>{name}</Title>
-        </Row>
+        </Row> */}
       </MoblieSection>
 
       <Section>
@@ -76,31 +76,35 @@ const Sidebar = () => {
 
       <Section $isMaxHeight={true}>
         <SectionTitle>내 폴더</SectionTitle>
-        {isLoading ? (
-          <LoadingText>폴더 불러오는 중...</LoadingText>
-        ) : (
-          folders?.map((folder) => (
-            <RecursiveFolderItem
-              key={folder.id}
-              folder={folder}
-            />
-          ))
-        )}
+        <FolderListContainer>
+          {isLoading ? (
+            <LoadingText>폴더 불러오는 중...</LoadingText>
+          ) : (
+            folders?.map((folder) => (
+              <RecursiveFolderItem
+                key={folder.id}
+                folder={folder}
+              />
+            ))
+          )}
+        </FolderListContainer>
       </Section>
 
 
       <Section $isMaxHeight={true}>
         <SectionTitle>공유 폴더</SectionTitle>
-        {isShareLoading ? (
-          <LoadingText>공유 폴더 불러오는 중...</LoadingText>
-        ) : (
-          shareFolders?.map((folder) => (
-            <RecursiveFolderItem
-              key={folder.id}
-              folder={folder}
-            />
-          ))
-        )}
+        <FolderListContainer>
+          {isShareLoading ? (
+            <LoadingText>공유 폴더 불러오는 중...</LoadingText>
+          ) : (
+            shareFolders?.map((folder) => (
+              <RecursiveFolderItem
+                key={folder.id}
+                folder={folder}
+              />
+            ))
+          )}
+        </FolderListContainer>
       </Section>
 
       <NewFolderButton onClick={openCreateModal}>+ 새 폴더</NewFolderButton>
@@ -158,16 +162,32 @@ const FolderEditBtn = styled.button`
   }
 `
 
+// const Section = styled.div<{ $isMaxHeight?: boolean }>`
+//   max-height: ${props => (props.$isMaxHeight ? '280px;' : 'none;')};
+//   // min-height: ${props => (props.$isMaxHeight ? '250px;' : 'none;')};
+//   margin-bottom: 24px;
+//   overflow-y: auto; /* scroll 대신 auto를 권장합니다 (필요할 때만 노출) */
+//   /* 모바일 View (768px 이하) 대응 */
+//   @media (max-width: 768px) {
+//     max-height: ${props => (props.$isMaxHeight ? '200px' : 'none')};
+//     // min-height: ${props => (props.$isMaxHeight ? '200px' : 'none')};
+//   }
+// `;
+
+// 1. 전체 외곽 틀 (높이 제한 담당)
 const Section = styled.div<{ $isMaxHeight?: boolean }>`
-  max-height: ${props => (props.$isMaxHeight ? '280px;' : 'none;')};
-  // min-height: ${props => (props.$isMaxHeight ? '250px;' : 'none;')};
+  display: flex;
+  flex-direction: column; /* 세로 배치 */
   margin-bottom: 24px;
-  overflow-y: auto; /* scroll 대신 auto를 권장합니다 (필요할 때만 노출) */
-  /* 모바일 View (768px 이하) 대응 */
+  max-height: ${props => (props.$isMaxHeight ? '280px' : 'none')};
+  
   @media (max-width: 768px) {
     max-height: ${props => (props.$isMaxHeight ? '200px' : 'none')};
-    // min-height: ${props => (props.$isMaxHeight ? '200px' : 'none')};
+     margin-bottom: 8px;
   }
+  
+  /* ⚠️ 중요: 기존에 있던 overflow-y: auto는 여기서 제거해야 합니다! */
+  overflow: visible; 
 `;
 
 const MoblieSection = styled.div`
@@ -199,11 +219,16 @@ const SectionTitle = styled.h3`
   text-transform: uppercase;
 `;
 
+const FolderListContainer = styled.div`
+  overflow-y: auto;
+  flex: 1;
+`;
+
 const FolderRow = styled.div<{ active: boolean; depth: number }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 8px;
+  padding: 6px 8px;
   padding-left: ${props => (props.depth - 1) * 12 + 12}px;
   cursor: pointer;
   border-radius: 6px;
@@ -231,7 +256,6 @@ const FolderRow = styled.div<{ active: boolean; depth: number }>`
     font-size: 12px;
     color: black;
     &.all{
-      font-size:14px;
       font-weight:500;
     }
   }
